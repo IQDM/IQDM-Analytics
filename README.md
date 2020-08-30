@@ -6,9 +6,10 @@ WORK IN PROGRESS
 ### Hotelling T^2
 Example to calculate the Hotelling T^2 values from a csv file
 ~~~
-from stats import PassRateStats
-s = PassRateStats("sample_data.csv")
-s.hotelling_t2(0.05)  #  0.05 significance
+>>> from src.stats import PassRateStats
+>>> s = PassRateStats("tests/data/multivariate_data.csv")
+>>> ht2 = s.hotelling_t2(0.05)  #  0.05 significance
+>>> print(ht2)
 {'Q': array([ 5.75062092,  3.80141786,  3.67243782, 18.80124504,  2.03849294,
        18.15447155,  4.54475048, 10.40783971,  3.60614333,  4.03138994,
         6.45171623,  4.60475303,  2.29185301, 15.7891342 ,  3.0102578 ,
@@ -23,5 +24,8 @@ s.hotelling_t2(0.05)  #  0.05 significance
         2.69041382,  1.47639788, 17.83532339,  4.03627833,  1.78953536,
        15.7485067 ,  1.56110637,  2.53753085,  2.04243193,  6.20630748,
        14.39527077,  9.88243129,  3.70056854,  4.92888799]), 
- 'CL': 5.375227273052731, 'UCL': 13.554640306113994}
+ 'CL': 5.375227273052731,
+ 'UCL': 13.554640306113994,
+ 'OOC': [3, 5, 13, 23, 50, 51, 57, 60, 65]}
+
 ~~~

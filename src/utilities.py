@@ -9,15 +9,20 @@
 import numpy as np
 
 
-def csv_to_dict(csv_file_path, dtype=None):
+def csv_to_dict(csv_file_path, delimiter=",", dtype=None, header_row=True):
     """Read in a csv file, return data as a dictionary
 
     Parameters
     ----------
     csv_file_path : str
         File path to the CSV file to be processed.
+    delimiter : str
+        Specify the delimiter used in the csv file (default = ',')
     dtype : None, Type, optional
         Optionally force values to a type (e.g., float, int, str, etc.).
+    header_row : bool, optional
+        If True, the first row is interpreted as column keys, otherwise row
+        indices will be used
 
     Returns
     -------
@@ -26,14 +31,24 @@ def csv_to_dict(csv_file_path, dtype=None):
     """
 
     with open(csv_file_path) as fp:
-        keys = fp.readline().strip().split(",")
-        data = {key: [] for key in keys}
-        for line in fp:
+
+        # Read first row, determine column keys
+        first_row = fp.readline().strip().split(delimiter)
+        if header_row:
+            keys = first_row
+            data = {key: [] for key in keys}
+        else:
+            keys = list(range(len(first_row)))
+            data = {key: [first_row[key]] for key in keys}
+
+        # Iterate through remaining rows, append values to data
+        for r, line in enumerate(fp):
             row = line.strip().split(",")
-            for i, value in enumerate(row):
+            for c, value in enumerate(row):
                 if dtype is not None:
                     value = dtype(value)
-                data[keys[i]].append(value)
+                data[keys[c]].append(value)
+
     return data
 
 

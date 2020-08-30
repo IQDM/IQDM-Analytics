@@ -10,7 +10,7 @@
 from os.path import isfile, splitext
 import numpy as np
 from scipy.stats import beta
-from utilities import dict_to_array, csv_to_dict
+from src.utilities import dict_to_array, csv_to_dict
 
 
 class PassRateStats:
@@ -35,7 +35,7 @@ class PassRateStats:
             self.data = data["data"]
             self.var_names = data["var_names"]
         elif isfile(data) and splitext(data)[1] == ".csv":
-            data = dict_to_array(csv_to_dict(data, dtype=float))["data"]
+            data = dict_to_array(csv_to_dict(data, dtype=float))
             self.data = data["data"]
             self.var_names = data["var_names"]
         else:
@@ -55,13 +55,13 @@ class PassRateStats:
         """Number of variables"""
         return self.data.shape[1]
 
-    def hotelling_t2(self, signifiance):
+    def hotelling_t2(self, alpha):
         """Calculate Hotelling T^2
 
         Parameters
         ----------
-        signifiance : float
-            The significance level used to calculated the
+        alpha : float
+            The significance level used to calculate the
             upper control limit (UCL)
 
         Returns
@@ -71,17 +71,26 @@ class PassRateStats:
             and upper control limit (UCL)
 
         """
+
+        # Hotelling T^2 statistic
+        Q = hotelling_t2(self.data)
+
+        # Center Line
         x_cl = 0.5
-        x_ucl = 1 - signifiance / 2
-        return {
-            "Q": hotelling_t2(self.data),
-            "CL": hotelling_t2_control_limit(
-                x_cl, self.observations, self.variables
-            ),
-            "UCL": hotelling_t2_control_limit(
-                x_ucl, self.observations, self.variables
-            ),
-        }
+        cl = hotelling_t2_control_limit(
+            x_cl, self.observations, self.variables
+        )
+
+        # Upper Control Limit
+        x_ucl = 1 - alpha / 2
+        ucl = hotelling_t2_control_limit(
+            x_ucl, self.observations, self.variables
+        )
+
+        # Out of Control indices
+        ooc = [i for i, Qi in enumerate(Q) if Qi > ucl]
+
+        return {"Q": Q, "CL": cl, "UCL": ucl, "OOC": ooc}
 
 
 def hotelling_t2(arr):
