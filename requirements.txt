@@ -1,2 +1,2 @@
-iqdmpdf
-dvha-stats
+iqdmpdf >= 0.2.7
+dvha-stats >= 0.2.4

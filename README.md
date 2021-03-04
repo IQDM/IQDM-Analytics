@@ -1,31 +1,70 @@
-# Analytics
-Code to Analyze Data Mining Results
+# IQDM Analytics
+**Under active development, not ready for wide use.**  
+Code to Analyze Data Mining Results from IQDM-PDF with DVHA-Stats
 
-WORK IN PROGRESS
+### Requirements
+Install these from github until made available on PyPI
+* iqdmpdf >= 0.2.7 (`pip install git+https://github.com/IQDM/IQDM-PDF.git`)
+* dvha-stats >= 0.2.4 (`pip install git+https://github.com/cutright/DVHA-Stats.git`)
 
-### Hotelling T^2
-Example to calculate the Hotelling T^2 values from a csv file
+### Example
+Univariate Control Chart from SNCPatient2020 csv output from IQDM-PDF
 ~~~
->>> from src.stats import PassRateStats
->>> s = PassRateStats("tests/data/multivariate_data.csv")
->>> ht2 = s.hotelling_t2(0.05)  #  0.05 significance
->>> print(ht2)
-{'Q': array([ 5.75062092,  3.80141786,  3.67243782, 18.80124504,  2.03849294,
-       18.15447155,  4.54475048, 10.40783971,  3.60614333,  4.03138994,
-        6.45171623,  4.60475303,  2.29185301, 15.7891342 ,  3.0102578 ,
-        6.36058098,  5.56477106,  3.92950273,  1.70534379,  2.14021007,
-        7.3839626 ,  1.16554558,  7.89636669, 20.13613585,  3.76034723,
-        0.93179106,  2.05542886,  2.65257506,  1.31049764,  1.59880892,
-        2.13839258,  3.33331329,  4.01060102,  2.71837612, 10.0744586 ,
-        4.50776545,  1.87955428,  7.13423455,  4.1773818 ,  3.70446025,
-        3.49570988, 11.52822658,  5.874624  ,  2.34515306,  2.71884639,
-        2.58457841,  3.2591779 ,  4.69554484,  9.1358149 ,  2.64106059,
-       21.21960037, 22.6229493 ,  1.55545875,  2.29606726,  3.96926714,
-        2.69041382,  1.47639788, 17.83532339,  4.03627833,  1.78953536,
-       15.7485067 ,  1.56110637,  2.53753085,  2.04243193,  6.20630748,
-       14.39527077,  9.88243129,  3.70056854,  4.92888799]), 
- 'CL': 5.375227273052731,
- 'UCL': 13.554640306113994,
- 'OOC': [3, 5, 13, 23, 50, 51, 57, 60, 65]}
+>>> from iqdma.stats import IQDMStats
+>>> s = IQDMStats('SNCPatient2020_results_2021-02-25_14-29-42_edit.csv', 'Pass (%)')
+>>> s.print_data_index_by_criteria()
+
+    index: 0
+        Summary Type: Summary (DTA Analysis)
+        Comparison Type: Absolute Dose Comparison (DTA/Gamma using 2D Mode)
+        Difference (%): 3.0
+        Distance (mm): 2.0
+        Threshold (%): 10.0
+        Use Global (%): Yes
+        Meas Uncertainty: No
+    index: 1
+        Summary Type: Summary (Gamma Analysis)
+        Comparison Type: Absolute Dose Comparison (DTA/Gamma using 2D Mode)
+        Difference (%): 2.0
+        Distance (mm): 2.0
+        Threshold (%): 10.0
+        Use Global (%): Yes
+        Meas Uncertainty: No
+    index: 2
+        Summary Type: Summary (Gamma Analysis)
+        Comparison Type: Absolute Dose Comparison (DTA/Gamma using 2D Mode)
+        Difference (%): 2.0
+        Distance (mm): 2.0
+        Threshold (%): 3.0
+        Use Global (%): Yes
+        Meas Uncertainty: No
+    index: 3
+        Summary Type: Summary (Gamma Analysis)
+        Comparison Type: Absolute Dose Comparison (DTA/Gamma using 2D Mode)
+        Difference (%): 3.0
+        Distance (mm): 2.0
+        Threshold (%): 10.0
+        Use Global (%): Yes
+        Meas Uncertainty: No
+    index: 4
+        Summary Type: Summary (Gamma Analysis)
+        Comparison Type: Absolute Dose Comparison (DTA/Gamma using 2D Mode)
+        Difference (%): 3.0
+        Distance (mm): 2.0
+        Threshold (%): 3.0
+        Use Global (%): Yes
+        Meas Uncertainty: No
+    index: 5
+        Summary Type: Summary (Gamma Analysis)
+        Comparison Type: Relative Comparison (DTA/Gamma using 2D Mode)
+        Difference (%): 3.0
+        Distance (mm): 2.0
+        Threshold (%): 10.0
+        Use Global (%): N/A
+        Meas Uncertainty: No
+
+
+>>> ucc = s.univariate_control_charts()
+>>> ucc[3].show()  # based on the print out from print_data_index_by_criteria
 
 ~~~
