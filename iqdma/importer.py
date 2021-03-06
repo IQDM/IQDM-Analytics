@@ -15,41 +15,77 @@ from IQDMPDF.parsers.sncpatient import SNCPatientReport2020, SNCPatientCustom
 from IQDMPDF.parsers.delta4 import Delta4Report
 from IQDMPDF.parsers.verisoft import VeriSoftReport
 
-PARSERS = {'SNCPatient2020': SNCPatientReport2020,
-           'SNCPatientCustom': SNCPatientCustom,
-           'Delta4Report': Delta4Report,
-           'VeriSoftReport': VeriSoftReport}
+PARSERS = {
+    "SNCPatient2020": SNCPatientReport2020,
+    "SNCPatientCustom": SNCPatientCustom,
+    "Delta4Report": Delta4Report,
+    "VeriSoftReport": VeriSoftReport,
+}
 
 
 class ReportImporter:
     """Class to import IQDM-PDF CSV output"""
-    def __init__(self, report_file_path: str, charting_column: str):
+
+    def __init__(self, report_file_path: str):
         """Initialize ``ReportImporter``
 
         Parameters
         ----------
         report_file_path : str
             File path to CSV output from IQDM-PDF
-        charting_column : str
-            Column of y-axis data
 
         """
-        data_dict = csv_to_dict(report_file_path)
+        self.data_dict = csv_to_dict(report_file_path)
 
-        self.parser = PARSERS[basename(report_file_path).split('_')[0]]()
+        self.parser = PARSERS[basename(report_file_path).split("_")[0]]()
         self.columns = self.parser.columns
         self.analysis_columns = self.parser.analysis_columns
 
-        self.uid_col = [self.columns[i] for i in self.analysis_columns['uid']]
-        self.crit_col = [self.columns[i] for i in self.analysis_columns['criteria']]
+    @property
+    def uid_col(self) -> list:
+        return [self.columns[i] for i in self.analysis_columns["uid"]]
 
-        self.criteria_options = {col: set(data_dict[col]) for col in self.crit_col}
+    @property
+    def criteria_col(self) -> list:
+        return [self.columns[i] for i in self.analysis_columns["criteria"]]
 
-        kwargs = {'uid_columns': self.uid_col,
-                  'x_data_cols': self.crit_col,
-                  'y_data_col': charting_column,
-                  'date_col':  self.columns[self.analysis_columns['date']],
-                  'dtype': float}
-        self.data = widen_data(data_dict, **kwargs)
-        self.x_axis = self.data.pop('date')
-        self.uids = self.data.pop('uid')
+    @property
+    def criteria_options(self) -> dict:
+        ans = {}
+        for col in self.criteria_col:
+            clean_options = []
+            for option in set(self.data_dict[col]):
+                try:
+                    clean_options.append(str(float(option)))
+                except ValueError:
+                    clean_options.append(option)
+            ans[col] = sorted(list(set(clean_options)))
+
+        return ans
+
+    def __call__(self, charting_column: str) -> dict:
+        """
+
+        Parameters
+        ----------
+        charting_column : str
+            Column of y-axis data
+
+        Returns
+        -------
+        dict
+
+        """
+
+        kwargs = {
+            "uid_columns": self.uid_col,
+            "x_data_cols": self.criteria_col,
+            "y_data_col": charting_column,
+            "date_col": self.columns[self.analysis_columns["date"]],
+            "dtype": float,
+        }
+        data = widen_data(self.data_dict, **kwargs)
+        x_axis = data.pop("date")
+        uids = data.pop("uid")
+
+        return {"data": data, "x_axis": x_axis, "uids": uids}
