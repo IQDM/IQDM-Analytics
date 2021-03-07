@@ -14,8 +14,9 @@ Code to Analyze Data Mining Results from IQDM-PDF with DVHA-Stats
 - [ ] Update License
 
 ### Install
+Clone the repo, then:
 ```
-pip install git+https://github.com/IQDM/IQDM-Analytics.git
+pip install -r requirements.txt
 ```
 
 ### Run
