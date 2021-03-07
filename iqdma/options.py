@@ -438,6 +438,7 @@ class UserSettings(wx.Frame):
                 "Edge is not availabe. Requires MS Edge Beta to be installed: "
                 "https://www.microsoftedgeinsider.com/en-us/download"
             )
+        self.combo_box_pdf_ext.SetValue("No" if self.options.PDF_IGNORE_EXT else "Yes")
 
     def __do_layout(self):
         sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
