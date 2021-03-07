@@ -178,6 +178,7 @@ class MainFrame(wx.Frame):
             self.on_table_select,
             self.list_ctrl_table,
         )
+        self.Bind(wx.EVT_CHAR_HOOK, self.data_table.increment_index)
 
     def __do_layout(self):
         sizer = {}

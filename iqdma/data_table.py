@@ -17,8 +17,8 @@ from iqdma.utilities import get_selected_listctrl_items, get_sorted_indices
 
 class DataTable:
     """
-    This is a helper class containing the UI elements of the list_ctrl.  Adding / Changing data with this class
-    will automatically update UI elements.
+    This is a helper class containing the UI elements of the list_ctrl.
+    Adding/Changing data with this class will automatically update UI elements.
     """
 
     def __init__(
@@ -473,3 +473,42 @@ class DataTable:
 
     def get_unique_values(self, column):
         return sorted(set(self.data[column]))
+
+    def increment_index(self, evt: wx.Event = None, increment: int = None):
+        """Increment the ListCtrl selection with an event or fixed increment
+
+        Parameters
+        ----------
+        evt : wx.Event
+            An event with a ``GetKeyCode`` method
+        increment : int
+            If no event is passed, use a fixed index increment
+
+        """
+        if self.has_data:
+            if hasattr(evt, 'GetKeyCode'):
+                keycode = evt.GetKeyCode()
+
+                if keycode == wx.WXK_UP:
+                    evt.Skip()
+                    increment = -1
+
+                elif keycode == wx.WXK_DOWN:
+                    evt.Skip()
+                    increment = 1
+
+                else:
+                    return
+
+            if increment is None:
+                increment = 1
+
+            current_index = self.selected_row_index
+            if len(current_index):
+                new_index = current_index[0] + increment
+                if new_index > self.row_count - 1:
+                    new_index = 0
+            else:
+                new_index = -1 + increment if increment > 0 else - increment
+            self.layout.Select(new_index)
+
