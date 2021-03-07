@@ -420,11 +420,11 @@ class UserSettings(wx.Frame):
         self.spin_ctrl_alpha_input.SetIncrement(0.1)
 
         # Windows needs this done explicitly or the value will be an empty string
-        self.combo_box_alpha_category.SetValue("IQR Alpha")
+        self.combo_box_alpha_category.SetValue("Control Chart Circle Alpha")
         self.combo_box_colors_category.SetValue("Plot Color")
-        self.combo_box_line_styles_category.SetValue("DVH Line Dash Selection")
+        self.combo_box_line_styles_category.SetValue("Control Chart Center Line Dash")
         self.combo_box_line_widths_category.SetValue(
-            "DVH Line Width Selection"
+            "Control Chart Center Line Width"
         )
         self.combo_box_sizes_category.SetValue("Plot Axis Label Font Size")
 

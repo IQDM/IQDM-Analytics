@@ -119,15 +119,18 @@ class MainFrame(wx.Frame):
         qmi = file_menu.Append(wx.ID_ANY, "&Quit\tCtrl+Q")
 
         settings_menu = wx.Menu()
+        menu_pref = settings_menu.Append(wx.ID_PREFERENCES)
 
         help_menu = wx.Menu()
         menu_github = help_menu.Append(wx.ID_ANY, "GitHub Page")
         menu_report_issue = help_menu.Append(wx.ID_ANY, "Report an Issue")
         menu_about = help_menu.Append(wx.ID_ANY, "&About")
 
+        # self.Bind(wx.EVT_MENU, self.on_pref, menu_settings)
         self.Bind(wx.EVT_MENU, self.on_quit, qmi)
         self.Bind(wx.EVT_MENU, self.on_browse, menu_open)
         self.Bind(wx.EVT_MENU, self.on_save, menu_save)
+        self.Bind(wx.EVT_MENU, self.on_pref, menu_pref)
         if is_mac():
             menu_user_settings = settings_menu.Append(
                 wx.ID_ANY, "&Preferences\tCtrl+,"
