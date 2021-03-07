@@ -110,6 +110,9 @@ class DefaultOptions:
 
         self.ENABLE_EDGE_BACKEND = False
 
+        self.PDF_N_JOBS = 4
+        self.PDF_IGNORE_EXT = False
+
 
 class Options(DefaultOptions):
     def __init__(self):
@@ -348,6 +351,16 @@ class UserSettings(wx.Frame):
             inc=0.1,
         )
 
+        self.spin_ctrl_n_jobs = wx.SpinCtrl(
+            self, wx.ID_ANY, "1", min=1, max=16, style=wx.SP_ARROW_KEYS
+        )
+        self.combo_box_pdf_ext = wx.ComboBox(
+            self,
+            wx.ID_ANY,
+            choices=["Yes", "No"],
+            style=wx.CB_DROPDOWN | wx.CB_READONLY,
+        )
+
         if is_windows():
             self.checkbox_edge_backend = wx.CheckBox(
                 self, wx.ID_ANY, "Enable Edge WebView Backend"
@@ -399,6 +412,11 @@ class UserSettings(wx.Frame):
         )
         self.spin_ctrl_alpha_input.SetMinSize((70, 22))
 
+        self.spin_ctrl_n_jobs.SetMinSize((50, 22))
+        self.combo_box_pdf_ext.SetMinSize(
+            (80, self.combo_box_pdf_ext.GetSize()[1])
+        )
+
         self.spin_ctrl_alpha_input.SetIncrement(0.1)
 
         # Windows needs this done explicitly or the value will be an empty string
@@ -427,6 +445,9 @@ class UserSettings(wx.Frame):
         sizer_plot_options = wx.StaticBoxSizer(
             wx.StaticBox(self, wx.ID_ANY, "Plot Options"), wx.VERTICAL
         )
+        sizer_iqdm_pdf_options = wx.StaticBoxSizer(
+            wx.StaticBox(self, wx.ID_ANY, "IQDM PDF Options"), wx.VERTICAL
+        )
         sizer_alpha = wx.BoxSizer(wx.VERTICAL)
         sizer_alpha_input = wx.BoxSizer(wx.HORIZONTAL)
         sizer_line_styles = wx.BoxSizer(wx.VERTICAL)
@@ -437,6 +458,8 @@ class UserSettings(wx.Frame):
         sizer_sizes_input = wx.BoxSizer(wx.HORIZONTAL)
         sizer_colors = wx.BoxSizer(wx.VERTICAL)
         sizer_colors_input = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_n_jobs = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_pdf_ext = wx.BoxSizer(wx.HORIZONTAL)
 
         label_colors = wx.StaticText(self, wx.ID_ANY, "Colors:")
         sizer_colors.Add(label_colors, 0, 0, 0)
@@ -489,6 +512,22 @@ class UserSettings(wx.Frame):
             )
         sizer_wrapper.Add(
             sizer_plot_options, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10
+        )
+
+        label_n_jobs = wx.StaticText(self, wx.ID_ANY, "Multi-Threading Jobs:")
+        sizer_n_jobs.Add(label_n_jobs, 0, 0, 0)
+        sizer_n_jobs.Add((20, 20), 0, 0, 0)
+        sizer_n_jobs.Add(self.spin_ctrl_n_jobs, 0, 0, 0)
+        sizer_iqdm_pdf_options.Add(sizer_n_jobs, 0, wx.EXPAND, 0)
+
+        label_ext = wx.StaticText(self, wx.ID_ANY, "Analyze .pdf only:")
+        sizer_pdf_ext.Add(label_ext, 0, 0, 0)
+        sizer_pdf_ext.Add((20, 20), 0, 0, 0)
+        sizer_pdf_ext.Add(self.combo_box_pdf_ext, 0, 0, 0)
+        sizer_iqdm_pdf_options.Add(sizer_pdf_ext, 0, wx.EXPAND, 0)
+        sizer_wrapper.Add(
+            sizer_iqdm_pdf_options, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP,
+            10
         )
 
         sizer_ok_cancel.Add(self.button_restore_defaults, 0, wx.RIGHT, 20)
@@ -561,6 +600,17 @@ class UserSettings(wx.Frame):
                 self.on_enable_edge,
                 id=self.checkbox_edge_backend.GetId(),
             )
+
+        self.Bind(
+            wx.EVT_TEXT,
+            self.update_n_jobs_val,
+            id=self.spin_ctrl_n_jobs.GetId(),
+        )
+        self.Bind(
+            wx.EVT_TEXT,
+            self.update_pdf_ext_val,
+            id=self.combo_box_pdf_ext.GetId(),
+        )
 
         self.Bind(
             wx.EVT_BUTTON,
@@ -676,6 +726,25 @@ class UserSettings(wx.Frame):
         )
         self.options.set_option(var, val)
 
+    def update_n_jobs_var(self, *args):
+        self.spin_ctrl_n_jobs.SetValue(self.options.PDF_N_JOBS)
+
+    def update_n_jobs_val(self, *args):
+        new = self.spin_ctrl_n_jobs.GetValue()
+        try:
+            val = int(float(new))
+        except ValueError:
+            val = 1
+        self.options.set_option('N_JOBS', val)
+
+    def update_pdf_ext_var(self, *args):
+        val = "No" if self.options.PDF_IGNORE_EXT else "Yes"
+        self.combo_box_pdf_ext.SetValue(val)
+
+    def update_pdf_ext_val(self, *args):
+        new = self.combo_box_pdf_ext.GetValue()
+        self.options.set_option('N_JOBS', new == 'No')
+
     def update_line_width_var(self, *args):
         var = self.clean_option_variable(
             self.combo_box_line_widths_category.GetValue(), inverse=True
@@ -736,6 +805,7 @@ class UserSettings(wx.Frame):
         self.update_line_style_var()
         self.update_line_width_var()
         self.update_size_var()
+        self.update_n_jobs_var()
 
     def restore_defaults(self, *args):
         MessageDialog(
