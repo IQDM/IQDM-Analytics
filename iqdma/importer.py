@@ -18,8 +18,8 @@ from IQDMPDF.parsers.verisoft import VeriSoftReport
 PARSERS = {
     "SNCPatient2020": SNCPatientReport2020,
     "SNCPatientCustom": SNCPatientCustom,
-    "Delta4Report": Delta4Report,
-    "VeriSoftReport": VeriSoftReport,
+    "Delta4": Delta4Report,
+    "VeriSoft": VeriSoftReport,
 }
 
 
