@@ -11,6 +11,7 @@
 
 from iqdma.importer import ReportImporter
 from dvhastats.ui import DVHAStats
+import numpy as np
 
 
 class IQDMStats(DVHAStats):
@@ -45,8 +46,11 @@ class IQDMStats(DVHAStats):
     def get_index_description(self):
         table = {key: [] for key in self.criteria_columns}
         table["Index"] = list(range(len(self.var_names)))
-        columns = ["Index"] + self.criteria_columns
+        table["Reports"] = []
+        columns = ["Index", "Reports"] + self.criteria_columns
         for i, var_name in enumerate(self.var_names):
+            counts = len(self.data[:, i][~np.isnan(self.data[:, i])])
+            table["Reports"].append(counts)
             for j, criteria in enumerate(var_name.split(" && ")):
                 table[self.criteria_columns[j]].append(criteria)
         return table, columns

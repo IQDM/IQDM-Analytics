@@ -18,10 +18,10 @@ from iqdma.utilities import (
     is_linux,
     scale_bitmap,
     set_frame_icon,
-    MessageDialog,
 )
 from iqdma.paths import ICONS, LICENSE_PATH
 from iqdma.data_table import DataTable
+from iqdma.importer import ReportImporter
 from iqdma.exporter import ExportFigure
 from iqdma.pdf_miner import ProgressFrame
 from numpy import isnan
@@ -43,6 +43,7 @@ class MainFrame(wx.Frame):
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.plot = PlotControlChart(self.panel, self.options)
 
+        self.importer = None
         self.report_data = None
         self.control_chart_data = None
 
@@ -152,6 +153,8 @@ class MainFrame(wx.Frame):
         self.text_ctrl = {"file": wx.TextCtrl(self.panel, wx.ID_ANY, "")}
         self.button = {"browse": wx.Button(self.panel, wx.ID_ANY, "Browse")}
 
+        self.combo_box = {"y": wx.ComboBox(self.panel, wx.ID_ANY, style=wx.CB_DROPDOWN | wx.CB_READONLY)}
+
         style = (
             wx.BORDER_SUNKEN
             | wx.LC_HRULES
@@ -179,13 +182,14 @@ class MainFrame(wx.Frame):
             self.list_ctrl_table,
         )
         self.Bind(wx.EVT_CHAR_HOOK, self.data_table.increment_index)
+        self.Bind(wx.EVT_COMBOBOX, self.update_report_data, id=self.combo_box["y"].GetId())
 
     def __do_layout(self):
         sizer = {}
         wrapper = wx.BoxSizer(wx.VERTICAL)
 
         static_box_sizers = {
-            "main": ("Control Chart", wx.HORIZONTAL),
+            "main": ("Control Chart", wx.VERTICAL),
             "file": ("File Selection", wx.HORIZONTAL),
             "criteria": ("Pass-Rate Criteria", wx.VERTICAL),
         }
@@ -193,6 +197,7 @@ class MainFrame(wx.Frame):
             sizer[key] = wx.StaticBoxSizer(
                 wx.StaticBox(self.panel, wx.ID_ANY, box[0]), box[1]
             )
+        sizer["y"] = wx.BoxSizer(wx.HORIZONTAL)
 
         # File objects
         sizer["file"].Add(self.text_ctrl["file"], 1, wx.EXPAND | wx.ALL, 5)
@@ -201,6 +206,11 @@ class MainFrame(wx.Frame):
         # Analysis Criteria Objects
         sizer["criteria"].Add(self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 10)
 
+        sizer["y"].Add((20, 20), 1, wx.EXPAND, 0)
+        label = wx.StaticText(self.panel, wx.ID_ANY, "Charting Variable:")
+        sizer["y"].Add(label, 0, wx.EXPAND, 0)
+        sizer["y"].Add(self.combo_box["y"], 0, 0, 0)
+        sizer["main"].Add(sizer["y"], 0, wx.EXPAND, 0)
         self.plot.init_layout()
         sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
 
@@ -231,17 +241,40 @@ class MainFrame(wx.Frame):
 
     def import_csv(self):
         self.plot.clear_plot()
+        self.importer = ReportImporter(self.text_ctrl["file"].GetValue())
+        options = self.importer.charting_options
+        self.combo_box['y'].Clear()
+        self.combo_box['y'].Append(options)
+        self.combo_box['y'].SetValue(options[0])
+        self.update_report_data()
+
+    def update_report_data(self, *evt):
+
+        index = 0
+        if len(self.data_table.selected_row_index):
+            index = self.data_table.selected_row_index[0]
+
         self.report_data = IQDMStats(
-            self.text_ctrl["file"].GetValue(), "Pass (%)"
+            self.text_ctrl["file"].GetValue(), self.charting_variable
         )
         table, columns = self.report_data.get_index_description()
         self.data_table.set_data(table, columns)
         self.data_table.set_column_widths(auto=True)
-        self.control_chart_data = self.report_data.univariate_control_charts(
-            ucl_limit=100
-        )
+        self.control_chart_data = self.report_data.univariate_control_charts(ucl_limit=self.ucl, lcl_limit=self.lcl)
         if len(table[columns[0]]):
-            self.list_ctrl_table.Select(0)
+            self.list_ctrl_table.Select(index)
+
+    @property
+    def charting_variable(self):
+        return self.combo_box["y"].GetValue()
+
+    @property
+    def ucl(self):
+        return self.importer.ucl[self.charting_variable]
+
+    @property
+    def lcl(self):
+        return self.importer.lcl[self.charting_variable]
 
     def on_table_select(self, *evt):
         selected = self.data_table.selected_row_index
@@ -268,7 +301,7 @@ class MainFrame(wx.Frame):
             "center_line": ucc.center_line,
             "ucl": ucl,
             "lcl": lcl,
-            "y_axis_label": "Pass (%)",
+            "y_axis_label": self.combo_box['y'].GetValue(),
         }
         self.plot.update_plot(**kwargs)
 

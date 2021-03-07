@@ -474,6 +474,7 @@ class PlotControlChart(Plot):
         self.set_figure_dimensions()
         self.clear_sources()
         self.y_axis_label = y_axis_label
+        self.figure.xaxis.axis_label = "Study"
         self.figure.yaxis.axis_label = self.y_axis_label
         if len(x) > 1:
 
