@@ -386,36 +386,37 @@ class MainFrame(wx.Frame):
         )
 
     def on_pdf_miner(self, *evt):
-        dlg = wx.DirDialog(
-            self,
-            "Parse IMRT QA Reports",
-            "",
-            style=wx.DD_DIR_MUST_EXIST | wx.DD_DEFAULT_STYLE,
-        )
-
-        init_dir = None
-        if dlg.ShowModal() == wx.ID_OK:
-            init_dir = dlg.GetPath()
-        dlg.Destroy()
-
-        if init_dir:
-            dlg = wx.DirDialog(
-                self,
-                "Select Output Directory for IMRT QA Reports",
-                "",
-                style=wx.DD_DIR_MUST_EXIST | wx.DD_DEFAULT_STYLE,
-            )
-
-            output_dir = None
-            if dlg.ShowModal() == wx.ID_OK:
-                output_dir = dlg.GetPath()
-            dlg.Destroy()
-            if output_dir:
-                kwargs = {'init_directory': init_dir,
-                          'output_dir': output_dir,
-                          'ignore_extension': self.options.PDF_IGNORE_EXT,
-                          'processes': self.options.PDF_N_JOBS}
-                ProgressFrame(kwargs)
+        ProgressFrame(self.options)
+        # dlg = wx.DirDialog(
+        #     self,
+        #     "Parse IMRT QA Reports",
+        #     "",
+        #     style=wx.DD_DIR_MUST_EXIST | wx.DD_DEFAULT_STYLE,
+        # )
+        #
+        # init_dir = None
+        # if dlg.ShowModal() == wx.ID_OK:
+        #     init_dir = dlg.GetPath()
+        # dlg.Destroy()
+        #
+        # if init_dir:
+        #     dlg = wx.DirDialog(
+        #         self,
+        #         "Select Output Directory for IMRT QA Reports",
+        #         "",
+        #         style=wx.DD_DIR_MUST_EXIST | wx.DD_DEFAULT_STYLE,
+        #     )
+        #
+        #     output_dir = None
+        #     if dlg.ShowModal() == wx.ID_OK:
+        #         output_dir = dlg.GetPath()
+        #     dlg.Destroy()
+        #     if output_dir:
+        #         kwargs = {'init_directory': init_dir,
+        #                   'output_dir': output_dir,
+        #                   'ignore_extension': self.options.PDF_IGNORE_EXT,
+        #                   'processes': self.options.PDF_N_JOBS}
+        #         ProgressFrame(kwargs)
 
 
 class About(wx.Dialog):

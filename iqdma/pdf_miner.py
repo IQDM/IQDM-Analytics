@@ -14,31 +14,54 @@ import wx
 from IQDMPDF.file_processor import process_files
 from threading import Thread
 from pubsub import pub
+from os.path import isdir
 
 
 class ProgressFrame(wx.Dialog):
     """Create a window to display progress and begin provided worker"""
 
-    def __init__(self, iqdm_pdf_kwargs):
+    def __init__(self, options):
         wx.Dialog.__init__(self, None)
 
-        self.iqdm_pdf_kwargs = iqdm_pdf_kwargs
+        self.text_ctrl = {'scan': wx.TextCtrl(self, wx.ID_ANY, ""),
+                          'output': wx.TextCtrl(self, wx.ID_ANY, "")}
+
+        self.button = {'scan': wx.Button(self, wx.ID_ANY, "Browse"),
+                       'output': wx.Button(self, wx.ID_ANY, "Browse"),
+                       'exec': wx.Button(self, wx.ID_ANY, "Start")}
+        self.button['exec'].Disable()
+
+        self.iqdm_pdf_kwargs = {'ignore_extension': options.PDF_IGNORE_EXT,
+                                'processes': options.PDF_N_JOBS}
 
         self.gauge = wx.Gauge(self, wx.ID_ANY, 100)
-        self.label_progress = wx.StaticText(self, wx.ID_ANY, "Initializing...")
+        # self.gauge.Hide()
+        self.label_progress = wx.StaticText(self, wx.ID_ANY, "")
         self.label_elapsed = wx.StaticText(self, wx.ID_ANY, "")
         self.label_remaining = wx.StaticText(self, wx.ID_ANY, "")
 
         self.__set_properties()
+        self.__do_bind()
         self.__do_layout()
+        self.__do_subscribe()
 
+        self.Show()
+
+    def __do_subscribe(self):
         pub.subscribe(self.update, "progress_update")
-
-        self.run()
 
     def run(self):
         """Initiate layout in GUI and begin thread"""
-        self.Show()
+        # self.gauge.Show()
+        self.button['exec'].Disable()
+        self.iqdm_pdf_kwargs['init_directory'] = self.text_ctrl['scan'].GetValue()
+        self.iqdm_pdf_kwargs['output_dir'] = self.text_ctrl[
+            'output'].GetValue()
+
+        for key in self.text_ctrl.keys():
+            self.text_ctrl[key].Disable()
+            self.button[key].Disable()
+
         ProgressFrameWorker(self.iqdm_pdf_kwargs)
 
     def callback(self, msg):
@@ -46,35 +69,102 @@ class ProgressFrame(wx.Dialog):
 
     def __set_properties(self):
         self.SetMinSize((672, 100))
-        self.SetTitle('Running IQDM-PDF')
+        self.SetTitle('IQDM-PDF')
+
+    def __do_bind(self):
+        self.Bind(wx.EVT_BUTTON, self.on_browse_scan,
+                  id=self.button['scan'].GetId())
+        self.Bind(wx.EVT_BUTTON, self.on_browse_output,
+                  id=self.button['output'].GetId())
+        self.Bind(wx.EVT_TEXT, self.enable_start,
+                  id=self.text_ctrl['scan'].GetId())
+        self.Bind(wx.EVT_TEXT, self.enable_start,
+                  id=self.text_ctrl['output'].GetId())
+        self.Bind(wx.EVT_BUTTON, self.on_button_exec, id=self.button['exec'].GetId())
 
     def __do_layout(self):
-        sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
-        sizer_time = wx.BoxSizer(wx.HORIZONTAL)
-        sizer_wrapper.Add(self.label_progress, 0, wx.TOP | wx.LEFT, 10)
-        sizer_wrapper.Add(self.gauge, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-        sizer_time.Add(self.label_elapsed, 1, wx.EXPAND | wx.LEFT, 10)
-        sizer_time.Add(self.label_remaining, 0, wx.RIGHT, 10)
-        sizer_wrapper.Add(sizer_time, 1, wx.EXPAND, 0)
-        self.SetSizer(sizer_wrapper)
+
+        sizer = {'wrapper': wx.BoxSizer(wx.VERTICAL),
+                 'time': wx.BoxSizer(wx.HORIZONTAL),
+                 'exec': wx.BoxSizer(wx.HORIZONTAL)}
+        static_box_sizers = {
+            "scan": ("Scanning Directory", wx.HORIZONTAL),
+            "output": ("Output Directory", wx.HORIZONTAL),
+        }
+        for key, box in static_box_sizers.items():
+            sizer[key] = wx.StaticBoxSizer(
+                wx.StaticBox(self, wx.ID_ANY, box[0]), box[1]
+            )
+
+        for key, text_ctrl in self.text_ctrl.items():
+            sizer[key].Add(self.text_ctrl[key], 1, wx.EXPAND | wx.ALL, 5)
+            sizer[key].Add(self.button[key], 0, wx.ALL, 5)
+            sizer['wrapper'].Add(sizer[key], 0, wx.EXPAND | wx.ALL, 5)
+
+        sizer['wrapper'].Add(self.label_progress, 0, wx.TOP | wx.LEFT, 10)
+        sizer['wrapper'].Add(self.gauge, 1, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        sizer['time'].Add(self.label_elapsed, 1, wx.EXPAND | wx.LEFT, 10)
+        sizer['time'].Add(self.label_remaining, 0, wx.RIGHT, 10)
+        sizer['wrapper'].Add(sizer['time'], 1, wx.EXPAND, 0)
+
+        sizer['exec'].Add((20, 20), 1, wx.EXPAND, 0)
+        sizer['exec'].Add(self.button['exec'], 0, wx.EXPAND | wx.ALL, 5)
+        sizer['wrapper'].Add(sizer['exec'], 0, wx.EXPAND | wx.ALL, 10)
+
+        self.SetSizer(sizer['wrapper'])
         self.Fit()
         self.Layout()
         self.Center()
+
+    def browse(self, key, msg):
+        dlg = wx.DirDialog(
+             self,
+             msg,
+             "",
+             style=wx.DD_DIR_MUST_EXIST | wx.DD_DEFAULT_STYLE,
+         )
+
+        if dlg.ShowModal() == wx.ID_OK:
+            self.text_ctrl[key].SetValue(dlg.GetPath())
+        dlg.Destroy()
+
+    def on_browse_scan(self, *evt):
+        self.browse('scan', "Select a Scanning Directory")
+        if not self.text_ctrl['output'].GetValue():
+            self.text_ctrl['output'].SetValue(self.text_ctrl['scan'].GetValue())
+
+    def on_browse_output(self, *evt):
+        self.browse('output', "Select an Output Directory")
+
+    def enable_start(self, *evt):
+        self.button['exec'].Enable(
+            isdir(self.text_ctrl['scan'].GetValue()) and isdir(
+                self.text_ctrl['output'].GetValue()))
+
+    def on_button_exec(self, *evt):
+        if self.button['exec'].GetLabel() == 'Start':
+            self.run()
+        else:
+            self.close()
 
     def set_title(self, msg):
         wx.CallAfter(self.SetTitle, msg)
 
     def update(self, msg):
+        if msg["gauge"] == 1:
+            self.button['exec'].SetLabelText("Close")
+            self.button['exec'].Enable()
         progress = f"Processing File: {msg['progress']}"
         elapsed = f"Elapsed: {msg['elapsed']}"
         remaining = f"Est. Remaining: {msg['remaining']}"
-        wx.CallAfter(self.label_progress.SetLabelText, progress)
-        wx.CallAfter(self.label_elapsed.SetLabelText, elapsed)
-        wx.CallAfter(self.label_remaining.SetLabelText, remaining)
+        if msg['progress']:
+            wx.CallAfter(self.label_progress.SetLabelText, progress)
+        if msg['elapsed']:
+            wx.CallAfter(self.label_elapsed.SetLabelText, elapsed)
+        if msg['remaining']:
+            wx.CallAfter(self.label_remaining.SetLabelText, remaining)
         wx.CallAfter(self.gauge.SetValue, int(100 * msg["gauge"]))
         wx.CallAfter(self.Layout)
-        if msg["gauge"] == 1:
-            self.close()
 
     def close(self):
         pub.unsubAll(topicName="progress_update")
