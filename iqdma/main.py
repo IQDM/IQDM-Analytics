@@ -46,6 +46,7 @@ class MainFrame(wx.Frame):
         self.control_chart_data = None
         self.options = Options()
         self.set_to_hist = False
+        self.is_plot_initialized = False
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.plot = PlotControlChart(self.panel, self.options)
@@ -178,6 +179,19 @@ class MainFrame(wx.Frame):
         self.list_ctrl_table = wx.ListCtrl(self.panel, wx.ID_ANY, style=style)
         self.data_table = DataTable(self.list_ctrl_table)
 
+        self.sizer = {}
+
+        static_box_sizers = {
+            "main": ("Charts", wx.VERTICAL),
+            "file": ("File Selection", wx.HORIZONTAL),
+            "criteria": ("Pass-Rate Criteria", wx.VERTICAL),
+        }
+        for key, box in static_box_sizers.items():
+            self.sizer[key] = wx.StaticBoxSizer(
+                wx.StaticBox(self.panel, wx.ID_ANY, box[0]), box[1]
+            )
+        self.sizer["y"] = wx.BoxSizer(wx.HORIZONTAL)
+
     def __do_bind(self):
         self.Bind(
             wx.EVT_BUTTON, self.on_browse, id=self.button["browse"].GetId()
@@ -216,41 +230,27 @@ class MainFrame(wx.Frame):
         )
 
     def __do_layout(self):
-        sizer = {}
         wrapper = wx.BoxSizer(wx.VERTICAL)
 
-        static_box_sizers = {
-            "main": ("Charts", wx.VERTICAL),
-            "file": ("File Selection", wx.HORIZONTAL),
-            "criteria": ("Pass-Rate Criteria", wx.VERTICAL),
-        }
-        for key, box in static_box_sizers.items():
-            sizer[key] = wx.StaticBoxSizer(
-                wx.StaticBox(self.panel, wx.ID_ANY, box[0]), box[1]
-            )
-        sizer["y"] = wx.BoxSizer(wx.HORIZONTAL)
-
         # File objects
-        sizer["file"].Add(self.text_ctrl["file"], 1, wx.EXPAND | wx.ALL, 5)
-        sizer["file"].Add(self.button["browse"], 0, wx.ALL, 5)
+        self.sizer["file"].Add(self.text_ctrl["file"], 1, wx.EXPAND | wx.ALL, 5)
+        self.sizer["file"].Add(self.button["browse"], 0, wx.ALL, 5)
 
         # Analysis Criteria Objects
-        sizer["criteria"].Add(self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 10)
+        self.sizer["criteria"].Add(self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 10)
 
-        sizer["y"].Add(self.check_box["hippa"], 1, wx.EXPAND | wx.LEFT, 5)
+        self.sizer["y"].Add(self.check_box["hippa"], 1, wx.EXPAND | wx.LEFT, 5)
         label_bins = wx.StaticText(self.panel, wx.ID_ANY, "Hist. Bins:")
-        sizer["y"].Add(label_bins, 0, wx.EXPAND, 0)
-        sizer["y"].Add(self.spin_ctrl['bins'], 0, wx.EXPAND | wx.RIGHT, 10)
+        self.sizer["y"].Add(label_bins, 0, wx.EXPAND, 0)
+        self.sizer["y"].Add(self.spin_ctrl['bins'], 0, wx.EXPAND | wx.RIGHT, 10)
         label = wx.StaticText(self.panel, wx.ID_ANY, "Charting Variable:")
-        sizer["y"].Add(label, 0, wx.EXPAND, 0)
-        sizer["y"].Add(self.combo_box["y"], 0, 0, 0)
-        sizer["main"].Add(sizer["y"], 0, wx.EXPAND, 0)
-        self.plot.init_layout()
-        sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
+        self.sizer["y"].Add(label, 0, wx.EXPAND, 0)
+        self.sizer["y"].Add(self.combo_box["y"], 0, 0, 0)
+        self.sizer["main"].Add(self.sizer["y"], 0, wx.EXPAND, 0)
 
-        wrapper.Add(sizer["file"], 0, wx.ALL | wx.EXPAND, 10)
-        wrapper.Add(sizer["criteria"], 0, wx.ALL | wx.EXPAND, 10)
-        wrapper.Add(sizer["main"], 1, wx.EXPAND | wx.ALL, 10)
+        wrapper.Add(self.sizer["file"], 0, wx.ALL | wx.EXPAND, 10)
+        wrapper.Add(self.sizer["criteria"], 0, wx.ALL | wx.EXPAND, 10)
+        wrapper.Add(self.sizer["main"], 1, wx.EXPAND | wx.ALL, 10)
 
         self.panel.SetSizer(wrapper)
         self.SetMinSize(self.options.MIN_RESOLUTION_MAIN)
@@ -357,6 +357,11 @@ class MainFrame(wx.Frame):
     # Data Processing and Visualization
     ################################################################
     def import_csv(self):
+        if not self.is_plot_initialized:
+            self.plot.init_layout()
+            self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
+            self.panel.Layout()
+            self.is_plot_initialized = True
         self.plot.clear_plot()
         self.importer = ReportImporter(self.text_ctrl["file"].GetValue())
         options = self.importer.charting_options
