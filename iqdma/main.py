@@ -11,7 +11,7 @@
 import wx
 from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
-from iqdma.options import Options, DefaultOptions, UserSettings
+from iqdma.options import Options, DefaultOptions
 from iqdma.utilities import (
     is_windows,
     is_mac,
@@ -19,7 +19,8 @@ from iqdma.utilities import (
     scale_bitmap,
     set_frame_icon,
 )
-from iqdma.paths import ICONS, LICENSE_PATH
+from iqdma.dialogs import UserSettings, About
+from iqdma.paths import ICONS
 from iqdma.data_table import DataTable
 from iqdma.importer import ReportImporter
 from iqdma.exporter import ExportFigure
@@ -33,24 +34,24 @@ class MainFrame(wx.Frame):
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
 
+        # Prevent resize event triggers during app launch
         self.allow_window_size_save = False
 
         self.user_settings = None
         self.export_figure = None
-
+        self.importer = None
+        self.report_data = None
+        self.control_chart_data = None
         self.options = Options()
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.plot = PlotControlChart(self.panel, self.options)
 
-        self.importer = None
-        self.report_data = None
-        self.control_chart_data = None
-
         self.__add_menubar()
         self.__add_tool_bar()
         self.__add_layout_objects()
         self.__do_bind()
+        self.__set_tooltips()
         self.__set_properties()
         self.__do_layout()
 
@@ -116,7 +117,6 @@ class MainFrame(wx.Frame):
         file_menu = wx.Menu()
         menu_open = file_menu.Append(wx.ID_ANY, "&Open\tCtrl+O")
         menu_save = file_menu.Append(wx.ID_ANY, "&Save\tCtrl+S")
-
         qmi = file_menu.Append(wx.ID_ANY, "&Quit\tCtrl+Q")
 
         settings_menu = wx.Menu()
@@ -139,6 +139,7 @@ class MainFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, self.on_pref, menu_user_settings)
 
         menu_win_pos = settings_menu.Append(wx.ID_ANY, "Reset Windows")
+
         self.Bind(wx.EVT_MENU, self.on_reset_windows, menu_win_pos)
         self.Bind(wx.EVT_MENU, self.on_githubpage, menu_github)
         self.Bind(wx.EVT_MENU, self.on_report_issue, menu_report_issue)
@@ -153,6 +154,7 @@ class MainFrame(wx.Frame):
         self.text_ctrl = {"file": wx.TextCtrl(self.panel, wx.ID_ANY, "")}
         self.button = {"browse": wx.Button(self.panel, wx.ID_ANY, "Browse")}
 
+        self.check_box = {"hippa": wx.CheckBox(self.panel, wx.ID_ANY, "HIPPA Mode")}
         self.combo_box = {"y": wx.ComboBox(self.panel, wx.ID_ANY, style=wx.CB_DROPDOWN | wx.CB_READONLY)}
 
         style = (
@@ -183,6 +185,12 @@ class MainFrame(wx.Frame):
         )
         self.Bind(wx.EVT_CHAR_HOOK, self.data_table.increment_index)
         self.Bind(wx.EVT_COMBOBOX, self.update_report_data, id=self.combo_box["y"].GetId())
+        self.Bind(wx.EVT_CHECKBOX, self.update_report_data, id=self.check_box["hippa"].GetId())
+
+    def __set_tooltips(self):
+        self.check_box["hippa"].SetToolTip(
+            "Hide date and ID from chart hover tooltips."
+        )
 
     def __do_layout(self):
         sizer = {}
@@ -206,7 +214,7 @@ class MainFrame(wx.Frame):
         # Analysis Criteria Objects
         sizer["criteria"].Add(self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 10)
 
-        sizer["y"].Add((20, 20), 1, wx.EXPAND, 0)
+        sizer["y"].Add(self.check_box['hippa'], 1, wx.EXPAND | wx.LEFT, 5)
         label = wx.StaticText(self.panel, wx.ID_ANY, "Charting Variable:")
         sizer["y"].Add(label, 0, wx.EXPAND, 0)
         sizer["y"].Add(self.combo_box["y"], 0, 0, 0)
@@ -276,6 +284,10 @@ class MainFrame(wx.Frame):
     def lcl(self):
         return self.importer.lcl[self.charting_variable]
 
+    @property
+    def hippa_mode(self):
+        return self.check_box['hippa'].GetValue()
+
     def on_table_select(self, *evt):
         selected = self.data_table.selected_row_index
         if selected:
@@ -289,15 +301,19 @@ class MainFrame(wx.Frame):
         lcl, ucl = ucc.control_limits
         lcl = ucc.center_line if isnan(lcl) else lcl
         ucl = ucc.center_line if isnan(ucl) else ucl
-        data_id = [
-            f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
-            for v in self.report_data.uid_data
-        ]
+        if self.hippa_mode:
+            dates = data_id = ['Redacted'] * len(self.report_data.uid_data)
+        else:
+            data_id = [
+                f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
+                for v in self.report_data.uid_data
+            ]
+            dates = self.report_data.x_axis
         kwargs = {
             "x": data["x"],
             "y": data["y"],
             "data_id": data_id,
-            "dates": self.report_data.x_axis,
+            "dates": dates,
             "center_line": ucc.center_line,
             "ucl": ucl,
             "lcl": lcl,
@@ -387,77 +403,6 @@ class MainFrame(wx.Frame):
 
     def on_pdf_miner(self, *evt):
         ProgressFrame(self.options)
-        # dlg = wx.DirDialog(
-        #     self,
-        #     "Parse IMRT QA Reports",
-        #     "",
-        #     style=wx.DD_DIR_MUST_EXIST | wx.DD_DEFAULT_STYLE,
-        # )
-        #
-        # init_dir = None
-        # if dlg.ShowModal() == wx.ID_OK:
-        #     init_dir = dlg.GetPath()
-        # dlg.Destroy()
-        #
-        # if init_dir:
-        #     dlg = wx.DirDialog(
-        #         self,
-        #         "Select Output Directory for IMRT QA Reports",
-        #         "",
-        #         style=wx.DD_DIR_MUST_EXIST | wx.DD_DEFAULT_STYLE,
-        #     )
-        #
-        #     output_dir = None
-        #     if dlg.ShowModal() == wx.ID_OK:
-        #         output_dir = dlg.GetPath()
-        #     dlg.Destroy()
-        #     if output_dir:
-        #         kwargs = {'init_directory': init_dir,
-        #                   'output_dir': output_dir,
-        #                   'ignore_extension': self.options.PDF_IGNORE_EXT,
-        #                   'processes': self.options.PDF_N_JOBS}
-        #         ProgressFrame(kwargs)
-
-
-class About(wx.Dialog):
-    """
-    Simple dialog to display the LICENSE file and a brief text header in a scrollable window
-    """
-
-    def __init__(self, *evt):
-        wx.Dialog.__init__(self, None, title="About IQDM Analytics")
-
-        scrolled_window = wx.ScrolledWindow(self, wx.ID_ANY)
-
-        with open(LICENSE_PATH, "r", encoding="utf8") as license_file:
-            license_text = "".join([line for line in license_file])
-
-        license_text = (
-            "IQDM Analytics v%s\nhttps://github.com/IQDM/IQDM-Analytics\n\n%s"
-            % (
-                DefaultOptions().VERSION,
-                license_text,
-            )
-        )
-
-        sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
-        sizer_text = wx.BoxSizer(wx.VERTICAL)
-
-        scrolled_window.SetScrollRate(20, 20)
-
-        license_text = wx.StaticText(scrolled_window, wx.ID_ANY, license_text)
-        sizer_text.Add(license_text, 0, wx.EXPAND | wx.ALL, 5)
-        scrolled_window.SetSizer(sizer_text)
-        sizer_wrapper.Add(scrolled_window, 1, wx.EXPAND, 0)
-
-        self.SetBackgroundColour(wx.WHITE)
-
-        self.SetSizer(sizer_wrapper)
-        self.SetSize((750, 900))
-        self.Center()
-
-        self.ShowModal()
-        self.Destroy()
 
 
 class MainApp(wx.App):
