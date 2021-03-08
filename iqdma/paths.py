@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
 # paths.py
 """
-A collection of directories and paths updated with the script directory and user's home folder for the OS
+A collection of directories and paths updated with the script directory and
+user's home folder for the OS
 """
 # Copyright (c) 2016-2019 Dan Cutright
-# This file is part of DVH Analytics, released under a BSD license.
+# This file is part of IQDM Analytics, released under a MIT license.
 #    See the file LICENSE included with this distribution, also
 #    available at https://github.com/cutright/DVH-Analytics
 

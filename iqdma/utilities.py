@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# utilities.py
+"""utilities for IQDM Analytics"""
+#
+# Copyright (c) 2021 Dan Cutright
+# This file is part of IQDM-Analytics, released under a MIT license.
+#    See the file LICENSE included with this distribution, also
+#    available at https://github.com/IQDM/IQDM-Analytics
+
 import wx
 import wx.html2 as webview
 from os import environ
@@ -13,17 +24,14 @@ else:
 
 
 def is_windows():
-    """ """
     return wx.Platform == "__WXMSW__"
 
 
 def is_linux():
-    """ """
     return wx.Platform == "__WXGTK__"
 
 
 def is_mac():
-    """ """
     return wx.Platform == "__WXMAC__"
 
 
@@ -202,17 +210,6 @@ def get_selected_listctrl_items(list_control):
 
 
 def get_sorted_indices(some_list):
-    """
-
-    Parameters
-    ----------
-    some_list :
-
-
-    Returns
-    -------
-
-    """
     try:
         return [i[0] for i in sorted(enumerate(some_list), key=lambda x: x[1])]
     except TypeError:  # can't sort if a mix of str and float
@@ -231,33 +228,14 @@ def get_sorted_indices(some_list):
 
 
 def set_msw_background_color(window_obj, color="lightgrey"):
-    """
-
-    Parameters
-    ----------
-    window_obj :
-
-    color :
-         (Default value = 'lightgrey')
-
-    Returns
-    -------
-
-    """
     if is_windows():
         window_obj.SetBackgroundColour(color)
 
 
 class MessageDialog:
     """This is the base class for Yes/No Dialog boxes
-    Inherit this class, then over-write action_yes and action_no functions with appropriate behaviors
-
-    Parameters
-    ----------
-
-    Returns
-    -------
-
+    Inherit this class, then over-write action_yes and action_no functions
+    with appropriate behaviors
     """
 
     def __init__(

@@ -56,13 +56,18 @@ class ReportImporter:
     @property
     def ucl(self):
         y_names = self.charting_options
-        return {y_names[i]: y["ucl_limit"] for i, y in enumerate(self.analysis_columns["y"])}
+        return {
+            y_names[i]: y["ucl_limit"]
+            for i, y in enumerate(self.analysis_columns["y"])
+        }
 
     @property
     def lcl(self):
         y_names = self.charting_options
-        return {y_names[i]: y["lcl_limit"] for i, y in
-                enumerate(self.analysis_columns["y"])}
+        return {
+            y_names[i]: y["lcl_limit"]
+            for i, y in enumerate(self.analysis_columns["y"])
+        }
 
     @property
     def criteria_options(self) -> dict:

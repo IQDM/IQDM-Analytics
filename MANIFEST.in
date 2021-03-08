@@ -1,0 +1,5 @@
+recursive-include iqdma *.py
+include README.rst
+include LICENSE
+include iqdma/resources/LICENSE.txt
+include iqdma/resources/icons/*

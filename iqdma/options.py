@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+#
 # options.py
-"""
-Class used to manage user options
-"""
-# Copyright (c) 2016-2019 Dan Cutright
-# This file is part of DVH Analytics, released under a BSD license.
+"""options file for IQDM Analytics"""
+#
+# Copyright (c) 2021 Dan Cutright
+# This file is part of IQDM-Analytics, released under a MIT license.
 #    See the file LICENSE included with this distribution, also
-#    available at https://github.com/cutright/DVH-Analytics
+#    available at https://github.com/IQDM/IQDM-Analytics
 
 import pickle
 from os.path import isfile

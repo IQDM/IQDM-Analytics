@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
-# models.data_table.py
+#
+# data_table.py
 """
 A class to sync a data object and list_ctrl
 """
@@ -486,7 +486,7 @@ class DataTable:
 
         """
         if self.has_data:
-            if hasattr(evt, 'GetKeyCode'):
+            if hasattr(evt, "GetKeyCode"):
                 keycode = evt.GetKeyCode()
 
                 if keycode == wx.WXK_UP:
@@ -509,6 +509,5 @@ class DataTable:
                 if new_index > self.row_count - 1:
                     new_index = 0
             else:
-                new_index = -1 + increment if increment > 0 else - increment
+                new_index = -1 + increment if increment > 0 else -increment
             self.layout.Select(new_index)
-

@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# dialogs.py
+"""secondary windows for IQDM Analytics"""
+#
+# Copyright (c) 2021 Dan Cutright
+# This file is part of IQDM-Analytics, released under a MIT license.
+#    See the file LICENSE included with this distribution, also
+#    available at https://github.com/IQDM/IQDM-Analytics
+
 from iqdma.paths import LICENSE_PATH
 from iqdma.options import DefaultOptions
 from iqdma.utilities import (
@@ -222,7 +233,9 @@ class UserSettings(wx.Frame):
         # Windows needs this done explicitly or the value will be an empty string
         self.combo_box_alpha_category.SetValue("Control Chart Circle Alpha")
         self.combo_box_colors_category.SetValue("Plot Color")
-        self.combo_box_line_styles_category.SetValue("Control Chart Center Line Dash")
+        self.combo_box_line_styles_category.SetValue(
+            "Control Chart Center Line Dash"
+        )
         self.combo_box_line_widths_category.SetValue(
             "Control Chart Center Line Width"
         )
@@ -233,12 +246,14 @@ class UserSettings(wx.Frame):
                 self.options.ENABLE_EDGE_BACKEND
             )
             self.checkbox_edge_backend.SetToolTip(
-                "Allows for more complete plot interaction. Must restart DVHA for "
-                "change to be applied. If you cannot toggle this checkbox, "
-                "Edge is not availabe. Requires MS Edge Beta to be installed: "
-                "https://www.microsoftedgeinsider.com/en-us/download"
+                "Allows for more complete plot interaction. Must restart "
+                "IQDMA for change to be applied. If you cannot toggle this "
+                "checkbox, Edge is not availabe. Requires MS Edge Beta to be "
+                "installed: https://www.microsoftedgeinsider.com/en-us/download"
             )
-        self.combo_box_pdf_ext.SetValue("No" if self.options.PDF_IGNORE_EXT else "Yes")
+        self.combo_box_pdf_ext.SetValue(
+            "No" if self.options.PDF_IGNORE_EXT else "Yes"
+        )
 
     def __do_layout(self):
         sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
@@ -327,8 +342,10 @@ class UserSettings(wx.Frame):
         sizer_pdf_ext.Add(self.combo_box_pdf_ext, 0, 0, 0)
         sizer_iqdm_pdf_options.Add(sizer_pdf_ext, 0, wx.EXPAND, 0)
         sizer_wrapper.Add(
-            sizer_iqdm_pdf_options, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP,
-            10
+            sizer_iqdm_pdf_options,
+            0,
+            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP,
+            10,
         )
 
         sizer_ok_cancel.Add(self.button_restore_defaults, 0, wx.RIGHT, 20)
@@ -536,7 +553,7 @@ class UserSettings(wx.Frame):
             val = int(float(new))
         except ValueError:
             val = 1
-        self.options.set_option('N_JOBS', val)
+        self.options.set_option("N_JOBS", val)
 
     def update_pdf_ext_var(self, *args):
         val = "No" if self.options.PDF_IGNORE_EXT else "Yes"
@@ -544,7 +561,7 @@ class UserSettings(wx.Frame):
 
     def update_pdf_ext_val(self, *args):
         new = self.combo_box_pdf_ext.GetValue()
-        self.options.set_option('N_JOBS', new == 'No')
+        self.options.set_option("N_JOBS", new == "No")
 
     def update_line_width_var(self, *args):
         var = self.clean_option_variable(
@@ -625,8 +642,12 @@ class UserSettings(wx.Frame):
 
     def on_apply(self, *evt):
         self.apply_and_redraw_plots()
-        self.is_edited = True  # Used to track edits since last options save
-        self.options.is_edited = False  # Used to track edits since redraw, is set to True on options.set_option()
+
+        # Used to track edits since last options save
+        self.is_edited = True
+
+        # Used to track edits since redraw, set to True on options.set_option()
+        self.options.is_edited = False
 
     def apply_and_redraw_plots(self):
         self.parent.apply_plot_options()
