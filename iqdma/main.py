@@ -45,6 +45,7 @@ class MainFrame(wx.Frame):
         self.report_data = None
         self.control_chart_data = None
         self.options = Options()
+        self.set_to_hist = False
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.plot = PlotControlChart(self.panel, self.options)
@@ -163,6 +164,9 @@ class MainFrame(wx.Frame):
                 self.panel, wx.ID_ANY, style=wx.CB_DROPDOWN | wx.CB_READONLY
             )
         }
+        self.spin_ctrl = {"bins": wx.SpinCtrl(
+            self.panel, wx.ID_ANY, "10", min=2, max=100, style=wx.SP_ARROW_KEYS
+        )}
 
         style = (
             wx.BORDER_SUNKEN
@@ -191,7 +195,7 @@ class MainFrame(wx.Frame):
             self.on_table_select,
             self.list_ctrl_table,
         )
-        self.Bind(wx.EVT_CHAR_HOOK, self.data_table.increment_index)
+        self.Bind(wx.EVT_CHAR_HOOK, self.data_table.increment_index, id=self.list_ctrl_table.GetId())
         self.Bind(
             wx.EVT_COMBOBOX,
             self.update_report_data,
@@ -202,6 +206,9 @@ class MainFrame(wx.Frame):
             self.update_report_data,
             id=self.check_box["hippa"].GetId(),
         )
+        self.Bind(wx.EVT_SPINCTRL, self.update_report_data_from_hist, id=self.spin_ctrl['bins'].GetId())
+        # self.Bind(wx.EVT_SPIN, self.update_report_data_from_hist,
+        #           id=self.spin_ctrl['bins'].GetId())
 
     def __set_tooltips(self):
         self.check_box["hippa"].SetToolTip(
@@ -213,7 +220,7 @@ class MainFrame(wx.Frame):
         wrapper = wx.BoxSizer(wx.VERTICAL)
 
         static_box_sizers = {
-            "main": ("Control Chart", wx.VERTICAL),
+            "main": ("Charts", wx.VERTICAL),
             "file": ("File Selection", wx.HORIZONTAL),
             "criteria": ("Pass-Rate Criteria", wx.VERTICAL),
         }
@@ -231,6 +238,9 @@ class MainFrame(wx.Frame):
         sizer["criteria"].Add(self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 10)
 
         sizer["y"].Add(self.check_box["hippa"], 1, wx.EXPAND | wx.LEFT, 5)
+        label_bins = wx.StaticText(self.panel, wx.ID_ANY, "Hist. Bins:")
+        sizer["y"].Add(label_bins, 0, wx.EXPAND, 0)
+        sizer["y"].Add(self.spin_ctrl['bins'], 0, wx.EXPAND | wx.RIGHT, 10)
         label = wx.StaticText(self.panel, wx.ID_ANY, "Charting Variable:")
         sizer["y"].Add(label, 0, wx.EXPAND, 0)
         sizer["y"].Add(self.combo_box["y"], 0, 0, 0)
@@ -376,6 +386,19 @@ class MainFrame(wx.Frame):
                 index = 0
             self.list_ctrl_table.Select(index)
 
+    def update_report_data_from_hist(self, *evt):
+        # if hasattr(evt[0], "GetKeyCode"):
+        #     keycode = evt[0].GetKeyCode()
+        #     print(keycode)
+        #
+        #     if keycode != wx.WXK_RETURN:
+        #         return
+        #     else:
+        #         evt[0].Skip()
+
+        self.set_to_hist = True
+        self.update_report_data()
+
     @property
     def charting_variable(self):
         return self.combo_box["y"].GetValue()
@@ -393,6 +416,7 @@ class MainFrame(wx.Frame):
         if selected:
             index = self.data_table.get_value(selected[0], 0)
             self.update_chart_data(index)
+            self.list_ctrl_table.SetFocus()
         else:
             self.plot.clear_plot()
 
@@ -419,8 +443,11 @@ class MainFrame(wx.Frame):
             "ucl": ucl,
             "lcl": lcl,
             "y_axis_label": self.combo_box["y"].GetValue(),
+            "bins": int(self.spin_ctrl['bins'].GetValue()),
+            "tab": 1 if self.set_to_hist else 0,
         }
         self.plot.update_plot(**kwargs)
+        self.set_to_hist = False
 
     def sort_table(self, evt):
         self.data_table.sort_table(evt)

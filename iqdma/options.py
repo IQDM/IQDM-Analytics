@@ -67,6 +67,9 @@ class DefaultOptions:
         self.CONTROL_CHART_OUT_OF_CONTROL_COLOR = "red"
         self.CONTROL_CHART_OUT_OF_CONTROL_ALPHA = 0.8
 
+        # Adjust the opacity of the histograms
+        self.HISTOGRAM_ALPHA = 0.5
+
         self.save_fig_param = {
             "figure": {
                 "y_range_start": -0.0005,

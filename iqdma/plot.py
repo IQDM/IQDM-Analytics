@@ -19,7 +19,9 @@ from bokeh.models import (
     HoverTool,
     ColumnDataSource,
     Div,
+    Spacer
 )
+from bokeh.models.widgets import Panel, Tabs
 from bokeh.layouts import column, row
 from os.path import join, isdir, splitext
 from os import makedirs
@@ -32,7 +34,7 @@ from iqdma.utilities import (
 )
 from iqdma.paths import TEMP_DIR
 from iqdma.options import Options
-from numpy import isnan
+import numpy as np
 
 
 DEFAULT_TOOLS = "pan,box_zoom,crosshair,reset"
@@ -72,7 +74,7 @@ class Plot:
         self.options = options
         self.parent = parent
         self.size_factor = (0.95, 0.95)
-        self.size_offset = (50, 400)
+        self.size_offset = (50, 440)
         self.layout = None
         self.bokeh_layout = None
         self.html_str = ""
@@ -87,12 +89,12 @@ class Plot:
             tools=tools,
             toolbar_sticky=True,
         )
+        self.figures = [self.figure]  # keep track of all figures
         self.figure.toolbar.logo = None
         self.set_figure_dimensions()
         self.figure.xaxis.axis_label = x_axis_label
         self.figure.yaxis.axis_label = y_axis_label
 
-        self.figures = [self.figure]  # keep track of all figures
         self.figures_attr = (
             []
         )  # temporary storage of figure dimensions/colors during export
@@ -273,7 +275,6 @@ class Plot:
         return False
 
     def export_png(self, file_name):
-        print(file_name)
         export_png(self.bokeh_layout, filename=file_name, timeout=10)
 
     def export_html(self, file_name):
@@ -323,8 +324,9 @@ class Plot:
             int(d * self.size_factor[i] - self.size_offset[i])
             for i, d in enumerate(self.parent.GetSize())
         ]
-        self.figure.plot_width = max(size[0], 100)
-        self.figure.plot_height = max(size[1], 100)
+        for fig in self.figures:
+            fig.plot_width = max(size[0], 100)
+            fig.plot_height = max(size[1], 100)
 
     def redraw_plot(self):
         if self.layout is not None:
@@ -384,6 +386,9 @@ class PlotControlChart(Plot):
             "plot": ColumnDataSource(
                 data=dict(x=[], y=[], data_id=[], color=[], alpha=[], dates=[])
             ),
+            "hist": ColumnDataSource(
+                data=dict(x=[], top=[], width=[])
+            ),
             "center_line": ColumnDataSource(data=dict(x=[], y=[], data_id=[])),
             "ucl_line": ColumnDataSource(data=dict(x=[], y=[], data_id=[])),
             "lcl_line": ColumnDataSource(data=dict(x=[], y=[], data_id=[])),
@@ -394,6 +399,7 @@ class PlotControlChart(Plot):
         }
 
         self.__add_plot_data()
+        self.__add_histogram_data()
         self.__add_hover()
         self.__create_divs()
         self.add_legend(self.figure)
@@ -424,6 +430,20 @@ class PlotControlChart(Plot):
             "x", "y", source=self.source["ucl_line"]
         )
 
+    def __add_histogram_data(self):
+        self.histogram = figure(tools="")
+        self.figures.append(self.histogram)
+        self.vbar = self.histogram.vbar(
+            x="x",
+            width="width",
+            bottom=0,
+            top="top",
+            source=self.source["hist"],
+        )
+
+        self.histogram.xaxis.axis_label = ""
+        self.histogram.yaxis.axis_label = "Frequency"
+
     def __add_hover(self):
         self.figure.add_tools(
             HoverTool(
@@ -435,6 +455,19 @@ class PlotControlChart(Plot):
                     ("Value", "@y{0.2f}"),
                 ],
                 renderers=[self.plot_data],
+            )
+        )
+
+        self.histogram.add_tools(
+            HoverTool(
+                show_arrow=True,
+                line_policy="next",
+                mode="vline",
+                tooltips=[
+                    ("Bin Center", "@x{0.2f}"),
+                    ("Counts", "@top"),
+                ],
+                renderers=[self.vbar],
             )
         )
 
@@ -456,7 +489,8 @@ class PlotControlChart(Plot):
         self.div_ooc = Div(text="", width=100)
 
     def __do_layout(self):
-        self.bokeh_layout = column(
+
+        control_chart = column(
             self.figure,
             row(
                 self.div_center_line,
@@ -466,6 +500,11 @@ class PlotControlChart(Plot):
                 self.div_ooc,
             ),
         )
+        histogram = column(Spacer(height=30), self.histogram)
+        tab1 = Panel(child=control_chart, title="Control Chart")
+        tab2 = Panel(child=histogram, title="Histogram")
+
+        self.bokeh_layout = Tabs(tabs=[tab1, tab2])
 
     def update_plot(
         self,
@@ -479,7 +518,10 @@ class PlotControlChart(Plot):
         y_axis_label="Y Axis",
         update_layout=True,
         cl_overrides=None,
+        bins=10,
+        tab=0,
     ):
+        self.bokeh_layout.active = tab
         self.set_figure_dimensions()
         self.clear_sources()
         self.y_axis_label = y_axis_label
@@ -504,7 +546,7 @@ class PlotControlChart(Plot):
             color = [colors[ucl >= value >= lcl] for value in y]
             alpha = [alphas[ucl >= value >= lcl] for value in y]
             ic = [
-                c == plot_color for i, c in enumerate(color) if not isnan(y[i])
+                c == plot_color for i, c in enumerate(color) if not np.isnan(y[i])
             ]
 
             self.source["plot"].data = {
@@ -545,12 +587,40 @@ class PlotControlChart(Plot):
             self.div_lcl.text = "<b>LCL</b>: %0.3f" % lcl
             self.div_ic.text = "<b>IC</b>: %d" % ic.count(True)
             self.div_ooc.text = "<b>OOC</b>: %d" % ic.count(False)
+
+            self.update_histogram(bins)
+
         else:
             self.clear_sources()
             self.clear_plot()
 
         if update_layout:
             self.update_bokeh_layout_in_wx_python()
+
+    def update_histogram(self, bin_size=10):
+        self.histogram.xaxis.axis_label = self.figure.yaxis.axis_label
+        width_fraction = 0.9
+        self.source["hist"].data = {
+            "x": [],
+            "top": [],
+            "width": [],
+        }
+
+        if self.source["plot"].data["y"]:
+            try:
+                y = [v for v in self.source["plot"].data["y"] if not np.isnan(v)]
+                hist, bins = np.histogram(
+                    y, bins=bin_size
+                )
+                width = [width_fraction * (bins[1] - bins[0])] * bin_size
+                center = (bins[:-1] + bins[1:]) / 2.0
+                self.source["hist"].data = {
+                    "x": center,
+                    "top": hist,
+                    "width": width,
+                }
+            except Exception as e:
+                print(e)
 
     def apply_options(self):
         super().apply_options()
@@ -601,3 +671,24 @@ class PlotControlChart(Plot):
             glyph.line_alpha = getattr(
                 self.options, "CONTROL_CHART_PATCH_ALPHA"
             )
+
+        self.histogram.xaxis.axis_label_text_font_size = (
+            self.options.PLOT_AXIS_LABEL_FONT_SIZE
+        )
+        self.histogram.yaxis.axis_label_text_font_size = (
+            self.options.PLOT_AXIS_LABEL_FONT_SIZE
+        )
+        self.histogram.xaxis.major_label_text_font_size = (
+            self.options.PLOT_AXIS_MAJOR_LABEL_FONT_SIZE
+        )
+        self.histogram.yaxis.major_label_text_font_size = (
+            self.options.PLOT_AXIS_MAJOR_LABEL_FONT_SIZE
+        )
+        self.histogram.min_border_left = self.options.MIN_BORDER
+        self.histogram.min_border_bottom = self.options.MIN_BORDER
+
+        glyph = self.vbar.glyph
+        glyph.line_color = self.options.PLOT_COLOR
+        glyph.fill_color = self.options.PLOT_COLOR
+        glyph.line_alpha = self.options.HISTOGRAM_ALPHA
+        glyph.fill_alpha = self.options.HISTOGRAM_ALPHA
