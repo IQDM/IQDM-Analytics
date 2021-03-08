@@ -387,7 +387,7 @@ class PlotControlChart(Plot):
                 data=dict(x=[], y=[], data_id=[], color=[], alpha=[], dates=[])
             ),
             "hist": ColumnDataSource(
-                data=dict(x=[], top=[], width=[])
+                data=dict(x=[], top=[], width=[], range=[])
             ),
             "center_line": ColumnDataSource(data=dict(x=[], y=[], data_id=[])),
             "ucl_line": ColumnDataSource(data=dict(x=[], y=[], data_id=[])),
@@ -465,6 +465,7 @@ class PlotControlChart(Plot):
                 mode="vline",
                 tooltips=[
                     ("Bin Center", "@x{0.2f}"),
+                    ("Bin Range", "@range"),
                     ("Counts", "@top"),
                 ],
                 renderers=[self.vbar],
@@ -614,10 +615,12 @@ class PlotControlChart(Plot):
                 )
                 width = [width_fraction * (bins[1] - bins[0])] * bin_size
                 center = (bins[:-1] + bins[1:]) / 2.0
+                range_ = ["%0.2f - %0.2f" % (bins[i], bins[i+1]) for i in range(len(bins)-1)]
                 self.source["hist"].data = {
                     "x": center,
                     "top": hist,
                     "width": width,
+                    "range": range_
                 }
             except Exception as e:
                 print(e)
