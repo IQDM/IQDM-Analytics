@@ -11,15 +11,15 @@ IMRT QA data mining with `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ and sta
 Other information
 -----------------
 This library is part of the IMRT QA Data Mining (IQDM) project for
-the `AAPM's IMRT Working Group (WGIMRT) <https://www.aapm.org/org/structure/?committee_code=WGIMRT>`__.
+the AAPM `IMRT Working Group (WGIMRT) <https://www.aapm.org/org/structure/?committee_code=WGIMRT>`__.
 
 -  Free software: `MIT license <https://github.com/IQDM/IQDM-Analytics/blob/master/LICENSE>`__
 
 
 Dependencies
 ------------
-* `iqdmpdf >= 0.2.8 <https://github.com/IQDM/IQDM-PDF>`__ - Mine IMRT QA PDF's
-* `dvha-stats >= 0.2.4.post1 <http://stats.dvhanalytics.com>`__ - DVH Analytics statistics library
+* `iqdmpdf <https://github.com/IQDM/IQDM-PDF>`__ - Mine IMRT QA PDF's
+* `dvha-stats <http://stats.dvhanalytics.com>`__ - DVH Analytics statistics library
 * `wxPython Phoenix <https://github.com/wxWidgets/Phoenix>`__ - Build a native GUI on Windows, Mac, or Unix systems
 * `Bokeh <https://github.com/bokeh/bokeh>`__ - Interactive Web Plotting for Python
 * `NumPy <http://numpy.org>`__ - The fundamental package for scientific computing with Python

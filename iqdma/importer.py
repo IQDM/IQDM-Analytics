@@ -83,6 +83,14 @@ class ReportImporter:
 
         return ans
 
+    def delta4_dtype_func(self, val):
+        val = val.strip()
+        if "%" in val:
+            return float(val.split("%")[0].strip())
+        elif " " in val:
+            return float(val.split(" ")[0].strip())
+        return float(val)
+
     def __call__(self, charting_column: str) -> dict:
         """
 
@@ -97,12 +105,18 @@ class ReportImporter:
 
         """
 
+        dtype = (
+            self.delta4_dtype_func
+            if isinstance(self.parser, Delta4Report)
+            else float
+        )
+
         kwargs = {
             "uid_columns": self.uid_col,
             "x_data_cols": self.criteria_col,
             "y_data_col": charting_column,
             "date_col": self.columns[self.analysis_columns["date"]],
-            "dtype": float,
+            "dtype": dtype,
         }
         data = widen_data(self.data_dict, **kwargs)
         x_axis = data.pop("date")

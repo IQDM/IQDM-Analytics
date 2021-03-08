@@ -359,7 +359,8 @@ class MainFrame(wx.Frame):
 
         index = 0
         if len(self.data_table.selected_row_index):
-            index = self.data_table.selected_row_index[0]
+            table_index = self.data_table.selected_row_index[0]
+            index = self.data_table.get_value(table_index, 0)
 
         self.report_data = IQDMStats(
             self.text_ctrl["file"].GetValue(), self.charting_variable
@@ -371,6 +372,8 @@ class MainFrame(wx.Frame):
             ucl_limit=self.ucl, lcl_limit=self.lcl
         )
         if len(table[columns[0]]):
+            if index > self.data_table.row_count:
+                index = 0
             self.list_ctrl_table.Select(index)
 
     @property
@@ -388,7 +391,8 @@ class MainFrame(wx.Frame):
     def on_table_select(self, *evt):
         selected = self.data_table.selected_row_index
         if selected:
-            self.update_chart_data(selected[0])
+            index = self.data_table.get_value(selected[0], 0)
+            self.update_chart_data(index)
         else:
             self.plot.clear_plot()
 

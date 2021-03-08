@@ -32,6 +32,7 @@ from iqdma.utilities import (
 )
 from iqdma.paths import TEMP_DIR
 from iqdma.options import Options
+from numpy import isnan
 
 
 DEFAULT_TOOLS = "pan,box_zoom,crosshair,reset"
@@ -448,14 +449,22 @@ class PlotControlChart(Plot):
         ]
 
     def __create_divs(self):
-        self.div_center_line = Div(text="", width=175)
-        self.div_ucl = Div(text="", width=175)
-        self.div_lcl = Div(text="", width=175)
+        self.div_center_line = Div(text="", width=150)
+        self.div_ucl = Div(text="", width=100)
+        self.div_lcl = Div(text="", width=100)
+        self.div_ic = Div(text="", width=100)
+        self.div_ooc = Div(text="", width=100)
 
     def __do_layout(self):
         self.bokeh_layout = column(
             self.figure,
-            row(self.div_center_line, self.div_ucl, self.div_lcl),
+            row(
+                self.div_center_line,
+                self.div_ucl,
+                self.div_lcl,
+                self.div_ic,
+                self.div_ooc,
+            ),
         )
 
     def update_plot(
@@ -494,6 +503,9 @@ class PlotControlChart(Plot):
             ]
             color = [colors[ucl >= value >= lcl] for value in y]
             alpha = [alphas[ucl >= value >= lcl] for value in y]
+            ic = [
+                c == plot_color for i, c in enumerate(color) if not isnan(y[i])
+            ]
 
             self.source["plot"].data = {
                 "x": x,
@@ -531,6 +543,8 @@ class PlotControlChart(Plot):
             )
             self.div_ucl.text = "<b>UCL</b>: %0.3f" % ucl
             self.div_lcl.text = "<b>LCL</b>: %0.3f" % lcl
+            self.div_ic.text = "<b>IC</b>: %d" % ic.count(True)
+            self.div_ooc.text = "<b>OOC</b>: %d" % ic.count(False)
         else:
             self.clear_sources()
             self.clear_plot()
