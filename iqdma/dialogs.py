@@ -157,6 +157,15 @@ class UserSettings(wx.Frame):
             style=wx.SP_ARROW_KEYS,
             inc=0.1,
         )
+        self.spin_ctrl_cc_std_dev = wx.SpinCtrlDouble(
+            self,
+            wx.ID_ANY,
+            "0",
+            min=0.1,
+            max=10.0,
+            style=wx.SP_ARROW_KEYS,
+            inc=0.1,
+        )
 
         self.spin_ctrl_n_jobs = wx.SpinCtrl(
             self, wx.ID_ANY, "1", min=1, max=16, style=wx.SP_ARROW_KEYS
@@ -218,6 +227,7 @@ class UserSettings(wx.Frame):
             (250, self.combo_box_alpha_category.GetSize()[1])
         )
         self.spin_ctrl_alpha_input.SetMinSize((70, 22))
+        self.spin_ctrl_cc_std_dev.SetMinSize((70, 22))
 
         self.spin_ctrl_n_jobs.SetMinSize((50, 22))
         self.combo_box_pdf_ext.SetMinSize(
@@ -225,6 +235,7 @@ class UserSettings(wx.Frame):
         )
 
         self.spin_ctrl_alpha_input.SetIncrement(0.1)
+        self.spin_ctrl_cc_std_dev.SetIncrement(0.1)
 
         # Windows needs this done explicitly or the value will be an empty string
         self.combo_box_alpha_category.SetValue("Control Chart Circle Alpha")
@@ -257,8 +268,8 @@ class UserSettings(wx.Frame):
         sizer_plot_options = wx.StaticBoxSizer(
             wx.StaticBox(self, wx.ID_ANY, "Plot Options"), wx.VERTICAL
         )
-        sizer_iqdm_pdf_options = wx.StaticBoxSizer(
-            wx.StaticBox(self, wx.ID_ANY, "IQDM PDF Options"), wx.VERTICAL
+        sizer_other_options = wx.StaticBoxSizer(
+            wx.StaticBox(self, wx.ID_ANY, "Other Options"), wx.VERTICAL
         )
         sizer_alpha = wx.BoxSizer(wx.VERTICAL)
         sizer_alpha_input = wx.BoxSizer(wx.HORIZONTAL)
@@ -270,6 +281,7 @@ class UserSettings(wx.Frame):
         sizer_sizes_input = wx.BoxSizer(wx.HORIZONTAL)
         sizer_colors = wx.BoxSizer(wx.VERTICAL)
         sizer_colors_input = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_cc_limit = wx.BoxSizer(wx.HORIZONTAL)
         sizer_n_jobs = wx.BoxSizer(wx.HORIZONTAL)
         sizer_pdf_ext = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -318,6 +330,7 @@ class UserSettings(wx.Frame):
         sizer_alpha_input.Add(self.spin_ctrl_alpha_input, 0, 0, 0)
         sizer_alpha.Add(sizer_alpha_input, 1, wx.EXPAND, 0)
         sizer_plot_options.Add(sizer_alpha, 1, wx.EXPAND, 0)
+
         if is_windows():
             sizer_plot_options.Add(
                 self.checkbox_edge_backend, 0, wx.EXPAND | wx.TOP, 5
@@ -326,19 +339,30 @@ class UserSettings(wx.Frame):
             sizer_plot_options, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 10
         )
 
+        label_cc_limit = wx.StaticText(
+            self, wx.ID_ANY, "Control Limit (Std. Dev.):"
+        )
+        label_cc_limit.SetMinSize((175, 20))
+        sizer_cc_limit.Add(label_cc_limit, 0, 0, 0)
+        sizer_cc_limit.Add((20, 20), 0, 0, 0)
+        sizer_cc_limit.Add(self.spin_ctrl_cc_std_dev, 0, 0, 0)
+        sizer_other_options.Add(sizer_cc_limit, 0, wx.EXPAND | wx.BOTTOM, 10)
+
         label_n_jobs = wx.StaticText(self, wx.ID_ANY, "Multi-Threading Jobs:")
+        label_n_jobs.SetMinSize((175, 20))
         sizer_n_jobs.Add(label_n_jobs, 0, 0, 0)
         sizer_n_jobs.Add((20, 20), 0, 0, 0)
         sizer_n_jobs.Add(self.spin_ctrl_n_jobs, 0, 0, 0)
-        sizer_iqdm_pdf_options.Add(sizer_n_jobs, 0, wx.EXPAND | wx.BOTTOM, 10)
+        sizer_other_options.Add(sizer_n_jobs, 0, wx.EXPAND | wx.BOTTOM, 10)
 
         label_ext = wx.StaticText(self, wx.ID_ANY, "Analyze .pdf only:")
+        label_ext.SetMinSize((175, 20))
         sizer_pdf_ext.Add(label_ext, 0, 0, 0)
         sizer_pdf_ext.Add((20, 20), 0, 0, 0)
         sizer_pdf_ext.Add(self.combo_box_pdf_ext, 0, 0, 0)
-        sizer_iqdm_pdf_options.Add(sizer_pdf_ext, 0, wx.EXPAND, 0)
+        sizer_other_options.Add(sizer_pdf_ext, 0, wx.EXPAND, 0)
         sizer_wrapper.Add(
-            sizer_iqdm_pdf_options,
+            sizer_other_options,
             0,
             wx.EXPAND | wx.ALL,
             10,
@@ -353,6 +377,7 @@ class UserSettings(wx.Frame):
         self.SetSizer(sizer_wrapper)
         self.Layout()
         self.Fit()
+        self.SetMinSize(self.GetSize())
 
         self.options.apply_window_position(self, "user_settings")
 
@@ -417,11 +442,17 @@ class UserSettings(wx.Frame):
 
         self.Bind(
             wx.EVT_TEXT,
+            self.update_cc_limit_val,
+            id=self.spin_ctrl_cc_std_dev.GetId(),
+        )
+
+        self.Bind(
+            wx.EVT_TEXT,
             self.update_n_jobs_val,
             id=self.spin_ctrl_n_jobs.GetId(),
         )
         self.Bind(
-            wx.EVT_TEXT,
+            wx.EVT_COMBOBOX,
             self.update_pdf_ext_val,
             id=self.combo_box_pdf_ext.GetId(),
         )
@@ -549,7 +580,7 @@ class UserSettings(wx.Frame):
             val = int(float(new))
         except ValueError:
             val = 1
-        self.options.set_option("N_JOBS", val)
+        self.options.set_option("PDF_N_JOBS", val)
 
     def update_pdf_ext_var(self, *args):
         val = "No" if self.options.PDF_IGNORE_EXT else "Yes"
@@ -557,7 +588,7 @@ class UserSettings(wx.Frame):
 
     def update_pdf_ext_val(self, *args):
         new = self.combo_box_pdf_ext.GetValue()
-        self.options.set_option("N_JOBS", new == "No")
+        self.options.set_option("PDF_IGNORE_EXT", new == "No")
 
     def update_line_width_var(self, *args):
         var = self.clean_option_variable(
@@ -613,6 +644,19 @@ class UserSettings(wx.Frame):
         )
         self.options.set_option(var, val)
 
+    def update_cc_limit_var(self, *args):
+        self.spin_ctrl_cc_std_dev.SetValue(
+            str(self.options.CONTROL_LIMIT_STD_DEV)
+        )
+
+    def update_cc_limit_val(self, *args):
+        new = self.spin_ctrl_cc_std_dev.GetValue()
+        try:
+            val = float(new)
+        except ValueError:
+            val = 1.0
+        self.options.set_option("CONTROL_LIMIT_STD_DEV", val)
+
     def refresh_options(self):
         self.update_alpha_var()
         self.update_input_colors_var()
@@ -620,6 +664,8 @@ class UserSettings(wx.Frame):
         self.update_line_width_var()
         self.update_size_var()
         self.update_n_jobs_var()
+        self.update_cc_limit_var()
+        self.update_pdf_ext_var()
 
     def restore_defaults(self, *args):
         MessageDialog(

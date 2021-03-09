@@ -532,7 +532,10 @@ class MainFrame(wx.Frame):
 
     def update_control_chart_data(self):
         self.control_chart_data = self.report_data.univariate_control_charts(
-            ucl_limit=self.ucl, lcl_limit=self.lcl, range=self.range
+            ucl_limit=self.ucl,
+            lcl_limit=self.lcl,
+            range=self.range,
+            std=self.options.CONTROL_LIMIT_STD_DEV,
         )
         self.on_table_select()
 
@@ -590,6 +593,7 @@ class MainFrame(wx.Frame):
             "y_axis_label": self.combo_box["y"].GetValue(),
             "bins": int(self.spin_ctrl["bins"].GetValue()),
             "tab": 1 if self.set_to_hist else 0,
+            "std": self.options.CONTROL_LIMIT_STD_DEV,
         }
         self.plot.update_plot(**kwargs)
         self.set_to_hist = False
@@ -599,7 +603,8 @@ class MainFrame(wx.Frame):
         self.data_table.set_column_widths(auto=True)
 
     def apply_plot_options(self):
-        self.plot.apply_options()
+        # self.plot.apply_options()
+        self.update_control_chart_data()  # works for now
 
     def redraw_plots(self):
         self.on_table_select(None)

@@ -100,6 +100,8 @@ class DefaultOptions:
         self.PDF_N_JOBS = 4
         self.PDF_IGNORE_EXT = False
 
+        self.CONTROL_LIMIT_STD_DEV = 3
+
 
 class Options(DefaultOptions):
     def __init__(self):
