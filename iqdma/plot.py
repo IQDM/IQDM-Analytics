@@ -68,7 +68,7 @@ class Plot:
         self.options = options
         self.parent = parent
         self.size_factor = (0.95, 0.95)
-        self.size_offset = (50, 440)
+        self.size_offset = (50, 400)
         self.layout = None
         self.bokeh_layout = None
         self.html_str = ""

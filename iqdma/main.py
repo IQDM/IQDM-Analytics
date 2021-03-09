@@ -199,11 +199,12 @@ class MainFrame(wx.Frame):
                 style=wx.SP_ARROW_KEYS,
             ),
         }
-        for key in self.spin_ctrl.keys():
-            self.text_ctrl[key] = self.spin_ctrl[key].GetChildren()[0]
-            self.text_ctrl[key].SetWindowStyle(
-                self.text_ctrl[key].GetWindowStyle() | wx.TE_PROCESS_ENTER
-            )
+        if is_mac():
+            for key in self.spin_ctrl.keys():
+                self.text_ctrl[key] = self.spin_ctrl[key].GetChildren()[0]
+                self.text_ctrl[key].SetWindowStyle(
+                    self.text_ctrl[key].GetWindowStyle() | wx.TE_PROCESS_ENTER
+                )
 
         style = (
             wx.BORDER_SUNKEN
@@ -319,22 +320,22 @@ class MainFrame(wx.Frame):
 
         self.sizer["y"].Add(self.check_box["hippa"], 1, wx.EXPAND | wx.LEFT, 5)
         label_start = wx.StaticText(self.panel, wx.ID_ANY, "Start:")
-        self.sizer["y"].Add(label_start, 0, wx.EXPAND, 0)
+        self.sizer["y"].Add(label_start, 0, wx.EXPAND | wx.RIGHT, 5)
         self.sizer["y"].Add(
             self.spin_ctrl["start"], 0, wx.EXPAND | wx.RIGHT, 10
         )
         label_end = wx.StaticText(self.panel, wx.ID_ANY, "Stop:")
-        self.sizer["y"].Add(label_end, 0, wx.EXPAND, 0)
+        self.sizer["y"].Add(label_end, 0, wx.EXPAND | wx.RIGHT, 5)
         self.sizer["y"].Add(
             self.spin_ctrl["stop"], 0, wx.EXPAND | wx.RIGHT, 10
         )
         label_bins = wx.StaticText(self.panel, wx.ID_ANY, "Hist. Bins:")
-        self.sizer["y"].Add(label_bins, 0, wx.EXPAND, 0)
+        self.sizer["y"].Add(label_bins, 0, wx.EXPAND| wx.RIGHT, 5)
         self.sizer["y"].Add(
             self.spin_ctrl["bins"], 0, wx.EXPAND | wx.RIGHT, 10
         )
         label = wx.StaticText(self.panel, wx.ID_ANY, "Charting Variable:")
-        self.sizer["y"].Add(label, 0, wx.EXPAND, 0)
+        self.sizer["y"].Add(label, 0, wx.EXPAND | wx.RIGHT, 5)
         self.sizer["y"].Add(self.combo_box["y"], 0, wx.RIGHT, 5)
         self.sizer["main"].Add(self.sizer["y"], 0, wx.EXPAND, 0)
 
@@ -344,6 +345,13 @@ class MainFrame(wx.Frame):
         wrapper.Add(self.sizer["file"], 0, wx.ALL | wx.EXPAND, 5)
         wrapper.Add(self.sizer["criteria"], 0, wx.ALL | wx.EXPAND, 5)
         wrapper.Add(self.sizer["main"], 1, wx.EXPAND | wx.ALL, 5)
+
+        if is_windows():
+            self.spin_ctrl['start'].SetMinSize((80, self.spin_ctrl['start'].GetSize()[1]))
+            self.spin_ctrl['stop'].SetMinSize(
+                (80, self.spin_ctrl['stop'].GetSize()[1]))
+            self.spin_ctrl['bins'].SetMinSize(
+                (70, self.spin_ctrl['bins'].GetSize()[1]))
 
         self.panel.SetSizer(wrapper)
         self.SetMinSize(self.options.MIN_RESOLUTION_MAIN)
