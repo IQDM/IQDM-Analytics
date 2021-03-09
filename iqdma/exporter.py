@@ -12,7 +12,7 @@ Export current chart to HTML, SVG, or PNG
 
 import wx
 from functools import partial
-import matplotlib.colors as plot_colors
+from iqdma.options import MATPLOTLIB_COLORS
 from iqdma.utilities import set_msw_background_color, set_frame_icon
 
 
@@ -61,7 +61,7 @@ class ExportFigure(wx.Frame):
                     )
                 )
                 if type(value) is str:
-                    color_options = ["none"] + list(plot_colors.cnames)
+                    color_options = ["none"] + MATPLOTLIB_COLORS
                     self.input[obj_type].append(
                         wx.ComboBox(
                             self,
