@@ -165,9 +165,16 @@ class MainFrame(wx.Frame):
                 self.panel, wx.ID_ANY, style=wx.CB_DROPDOWN | wx.CB_READONLY
             )
         }
-        self.spin_ctrl = {"bins": wx.SpinCtrl(
-            self.panel, wx.ID_ANY, "10", min=2, max=100, style=wx.SP_ARROW_KEYS
-        )}
+        self.spin_ctrl = {
+            "bins": wx.SpinCtrl(
+                self.panel,
+                wx.ID_ANY,
+                "10",
+                min=2,
+                max=100,
+                style=wx.SP_ARROW_KEYS,
+            )
+        }
 
         style = (
             wx.BORDER_SUNKEN
@@ -209,7 +216,11 @@ class MainFrame(wx.Frame):
             self.on_table_select,
             self.list_ctrl_table,
         )
-        self.Bind(wx.EVT_CHAR_HOOK, self.data_table.increment_index, id=self.list_ctrl_table.GetId())
+        self.Bind(
+            wx.EVT_CHAR_HOOK,
+            self.data_table.increment_index,
+            id=self.list_ctrl_table.GetId(),
+        )
         self.Bind(
             wx.EVT_COMBOBOX,
             self.update_report_data,
@@ -220,7 +231,11 @@ class MainFrame(wx.Frame):
             self.update_report_data,
             id=self.check_box["hippa"].GetId(),
         )
-        self.Bind(wx.EVT_SPINCTRL, self.update_report_data_from_hist, id=self.spin_ctrl['bins'].GetId())
+        self.Bind(
+            wx.EVT_SPINCTRL,
+            self.update_report_data_from_hist,
+            id=self.spin_ctrl["bins"].GetId(),
+        )
         # self.Bind(wx.EVT_SPIN, self.update_report_data_from_hist,
         #           id=self.spin_ctrl['bins'].GetId())
 
@@ -233,16 +248,22 @@ class MainFrame(wx.Frame):
         wrapper = wx.BoxSizer(wx.VERTICAL)
 
         # File objects
-        self.sizer["file"].Add(self.text_ctrl["file"], 1, wx.EXPAND | wx.ALL, 5)
+        self.sizer["file"].Add(
+            self.text_ctrl["file"], 1, wx.EXPAND | wx.ALL, 5
+        )
         self.sizer["file"].Add(self.button["browse"], 0, wx.ALL, 5)
 
         # Analysis Criteria Objects
-        self.sizer["criteria"].Add(self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 10)
+        self.sizer["criteria"].Add(
+            self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 10
+        )
 
         self.sizer["y"].Add(self.check_box["hippa"], 1, wx.EXPAND | wx.LEFT, 5)
         label_bins = wx.StaticText(self.panel, wx.ID_ANY, "Hist. Bins:")
         self.sizer["y"].Add(label_bins, 0, wx.EXPAND, 0)
-        self.sizer["y"].Add(self.spin_ctrl['bins'], 0, wx.EXPAND | wx.RIGHT, 10)
+        self.sizer["y"].Add(
+            self.spin_ctrl["bins"], 0, wx.EXPAND | wx.RIGHT, 10
+        )
         label = wx.StaticText(self.panel, wx.ID_ANY, "Charting Variable:")
         self.sizer["y"].Add(label, 0, wx.EXPAND, 0)
         self.sizer["y"].Add(self.combo_box["y"], 0, 0, 0)
@@ -454,7 +475,7 @@ class MainFrame(wx.Frame):
             "ucl": ucl,
             "lcl": lcl,
             "y_axis_label": self.combo_box["y"].GetValue(),
-            "bins": int(self.spin_ctrl['bins'].GetValue()),
+            "bins": int(self.spin_ctrl["bins"].GetValue()),
             "tab": 1 if self.set_to_hist else 0,
         }
         self.plot.update_plot(**kwargs)

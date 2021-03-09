@@ -10,7 +10,7 @@
 #    available at https://github.com/IQDM/IQDM-Analytics
 
 from iqdma.paths import LICENSE_PATH
-from iqdma.options import DefaultOptions
+from iqdma.options import DefaultOptions, MATPLOTLIB_COLORS
 from iqdma.utilities import (
     MessageDialog,
     is_windows,
@@ -19,7 +19,6 @@ from iqdma.utilities import (
 )
 import wx
 import wx.html2 as webview
-import matplotlib.colors as plot_colors
 
 
 class About(wx.Dialog):
@@ -86,9 +85,6 @@ class UserSettings(wx.Frame):
         self.options = parent.options
         self.options.edit_detected = False
 
-        colors = list(plot_colors.cnames)
-        colors.sort()
-
         color_variables = self.get_option_choices("COLOR")
         size_variables = self.get_option_choices("SIZE")
         width_variables = self.get_option_choices("LINE_WIDTH")
@@ -113,7 +109,7 @@ class UserSettings(wx.Frame):
         self.combo_box_colors_selection = wx.ComboBox(
             self,
             wx.ID_ANY,
-            choices=colors,
+            choices=MATPLOTLIB_COLORS,
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
         )
         self.combo_box_sizes_category = wx.ComboBox(

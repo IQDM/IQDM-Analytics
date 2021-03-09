@@ -14,13 +14,7 @@ import wx.html2
 from functools import partial
 from bokeh.plotting import figure
 from bokeh.io.export import get_layout_html, export_svgs, export_png
-from bokeh.models import (
-    Legend,
-    HoverTool,
-    ColumnDataSource,
-    Div,
-    Spacer
-)
+from bokeh.models import Legend, HoverTool, ColumnDataSource, Div, Spacer
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.layouts import column, row
 from os.path import join, isdir, splitext
@@ -547,7 +541,9 @@ class PlotControlChart(Plot):
             color = [colors[ucl >= value >= lcl] for value in y]
             alpha = [alphas[ucl >= value >= lcl] for value in y]
             ic = [
-                c == plot_color for i, c in enumerate(color) if not np.isnan(y[i])
+                c == plot_color
+                for i, c in enumerate(color)
+                if not np.isnan(y[i])
             ]
 
             self.source["plot"].data = {
@@ -609,18 +605,21 @@ class PlotControlChart(Plot):
 
         if self.source["plot"].data["y"]:
             try:
-                y = [v for v in self.source["plot"].data["y"] if not np.isnan(v)]
-                hist, bins = np.histogram(
-                    y, bins=bin_size
-                )
+                y = [
+                    v for v in self.source["plot"].data["y"] if not np.isnan(v)
+                ]
+                hist, bins = np.histogram(y, bins=bin_size)
                 width = [width_fraction * (bins[1] - bins[0])] * bin_size
                 center = (bins[:-1] + bins[1:]) / 2.0
-                range_ = ["%0.2f - %0.2f" % (bins[i], bins[i+1]) for i in range(len(bins)-1)]
+                range_ = [
+                    "%0.2f - %0.2f" % (bins[i], bins[i + 1])
+                    for i in range(len(bins) - 1)
+                ]
                 self.source["hist"].data = {
                     "x": center,
                     "top": hist,
                     "width": width,
-                    "range": range_
+                    "range": range_,
                 }
             except Exception as e:
                 print(e)
