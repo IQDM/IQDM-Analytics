@@ -5,7 +5,13 @@ IQDM-Analytics
 
 What does it do?
 ----------------
-IMRT QA data mining with `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ and statistical analysis using `DVHA-Stats <http://stats.dvhanalytics.com>`__.
+Desktop application for `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ with statistical analysis.
+
+
+Executables
+-----------
+
+Single-file executables are available. See attachments in the `latest release <https://github.com/IQDM/IQDM-Analytics/releases/latest>`__.
 
 
 Other information
@@ -19,30 +25,27 @@ the AAPM `IMRT Working Group (WGIMRT) <https://www.aapm.org/org/structure/?commi
 Dependencies
 ------------
 * `iqdmpdf <https://github.com/IQDM/IQDM-PDF>`__ - Mine IMRT QA PDF's
-* `dvha-stats <http://stats.dvhanalytics.com>`__ - DVH Analytics statistics library
 * `wxPython Phoenix <https://github.com/wxWidgets/Phoenix>`__ - Build a native GUI on Windows, Mac, or Unix systems
 * `Bokeh <https://github.com/bokeh/bokeh>`__ - Interactive Web Plotting for Python
 * `NumPy <http://numpy.org>`__ - The fundamental package for scientific computing with Python
-* `matplotlib <http://matplotlib.org>`__ - Visualization with Python
-* `selenium <https://github.com/SeleniumHQ/selenium/>`__
-* `PhantomJS <https://phantomjs.org/>`__
+* `selenium <https://github.com/SeleniumHQ/selenium/>`__ - A browser automation framework and ecosystem
+* `PhantomJS <https://phantomjs.org/>`__ - PhantomJS is a headless web browser scriptable with JavaScript
+* `pypubsub <https://github.com/schollii/pypubsub>`__ - A Python publish-subscribe library
 
 
-Install
--------
+Install and Run
+---------------
 
-.. code-block:: console
-
-    $ pip install git+https://github.com/IQDM/IQDM-Analytics.git
-
-
-Run
----
+If you prefer to run from source:
 
 .. code-block:: console
 
-    $ iqdma
+    $ git clone https://github.com/IQDM/IQDM-Analytics.git
+    $ cd IQDM-Analytics
+    $ python iqdma_app.py
 
+
+Note you *may* have to use pythonw instead of python, depending on your version.
 
 
 TODO

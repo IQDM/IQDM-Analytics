@@ -290,11 +290,6 @@ class MainFrame(wx.Frame):
             self.update_report_data_from_hist,
             id=self.spin_ctrl["bins"].GetId(),
         )
-        self.Bind(
-            wx.EVT_TEXT_ENTER,
-            self.update_report_data_from_hist,
-            id=self.spin_ctrl["bins"].GetId(),
-        )
         # self.Bind(wx.EVT_SPIN, self.update_report_data_from_hist,
         #           id=self.spin_ctrl['bins'].GetId())
 
@@ -330,7 +325,7 @@ class MainFrame(wx.Frame):
             self.spin_ctrl["stop"], 0, wx.EXPAND | wx.RIGHT, 10
         )
         label_bins = wx.StaticText(self.panel, wx.ID_ANY, "Hist. Bins:")
-        self.sizer["y"].Add(label_bins, 0, wx.EXPAND| wx.RIGHT, 5)
+        self.sizer["y"].Add(label_bins, 0, wx.EXPAND | wx.RIGHT, 5)
         self.sizer["y"].Add(
             self.spin_ctrl["bins"], 0, wx.EXPAND | wx.RIGHT, 10
         )
@@ -347,11 +342,15 @@ class MainFrame(wx.Frame):
         wrapper.Add(self.sizer["main"], 1, wx.EXPAND | wx.ALL, 5)
 
         if is_windows():
-            self.spin_ctrl['start'].SetMinSize((80, self.spin_ctrl['start'].GetSize()[1]))
-            self.spin_ctrl['stop'].SetMinSize(
-                (80, self.spin_ctrl['stop'].GetSize()[1]))
-            self.spin_ctrl['bins'].SetMinSize(
-                (70, self.spin_ctrl['bins'].GetSize()[1]))
+            self.spin_ctrl["start"].SetMinSize(
+                (80, self.spin_ctrl["start"].GetSize()[1])
+            )
+            self.spin_ctrl["stop"].SetMinSize(
+                (80, self.spin_ctrl["stop"].GetSize()[1])
+            )
+            self.spin_ctrl["bins"].SetMinSize(
+                (70, self.spin_ctrl["bins"].GetSize()[1])
+            )
 
         self.panel.SetSizer(wrapper)
         self.SetMinSize(self.options.MIN_RESOLUTION_MAIN)
