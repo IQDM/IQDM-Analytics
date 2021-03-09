@@ -48,13 +48,13 @@ Run
 TODO
 ----
 
-- Date handling (May be a DVHA-Stats issue?)
-- Test on output from reports other than SNCPatient2020
+- `MS Edge support <https://github.com/IQDM/IQDM-Analytics/issues/1>`__
 - Ability to cancel PDF-Miner thread
 - Documentation
 - Docstrings
 - PyInstaller
 - Update License
+- Error Log
 
 
 Credits

@@ -181,6 +181,15 @@ class ProgressFrame(wx.Dialog):
         remaining = f"Est. Remaining: {msg['remaining']}"
         if msg["progress"]:
             wx.CallAfter(self.label_progress.SetLabelText, progress)
+        elif msg["gauge"] == 1:
+            label = self.label_progress.GetLabel()
+            if '/' in label:
+                count = self.label_progress.GetLabel().split('/')[1]
+                label = f"COMPLETE: Processed {count} file(s))"
+            else:
+                label = "COMPLETE"
+            wx.CallAfter(self.label_progress.SetLabelText, label)
+            wx.CallAfter(self.label_remaining.SetLabelText, '')
         if msg["elapsed"]:
             wx.CallAfter(self.label_elapsed.SetLabelText, elapsed)
         if msg["remaining"]:

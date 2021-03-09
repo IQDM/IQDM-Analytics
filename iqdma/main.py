@@ -46,7 +46,7 @@ class MainFrame(wx.Frame):
         self.control_chart_data = None
         self.options = Options()
         self.set_to_hist = False
-        self.is_plot_initialized = False
+        # self.is_plot_initialized = False
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.plot = PlotControlChart(self.panel, self.options)
@@ -248,6 +248,9 @@ class MainFrame(wx.Frame):
         self.sizer["y"].Add(self.combo_box["y"], 0, 0, 0)
         self.sizer["main"].Add(self.sizer["y"], 0, wx.EXPAND, 0)
 
+        self.plot.init_layout()
+        self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
+
         wrapper.Add(self.sizer["file"], 0, wx.ALL | wx.EXPAND, 10)
         wrapper.Add(self.sizer["criteria"], 0, wx.ALL | wx.EXPAND, 10)
         wrapper.Add(self.sizer["main"], 1, wx.EXPAND | wx.ALL, 10)
@@ -303,7 +306,10 @@ class MainFrame(wx.Frame):
             self.export_figure.Close()
 
         if self.pdf_miner_window is not None:
-            self.pdf_miner_window.close()
+            try:
+                self.pdf_miner_window.close()
+            except RuntimeError:
+                pass
 
     def on_save(self, evt):
         if self.export_figure is None:
@@ -357,11 +363,11 @@ class MainFrame(wx.Frame):
     # Data Processing and Visualization
     ################################################################
     def import_csv(self):
-        if not self.is_plot_initialized:
-            self.plot.init_layout()
-            self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
-            self.panel.Layout()
-            self.is_plot_initialized = True
+        # if not self.is_plot_initialized:
+        #     self.plot.init_layout()
+        #     self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
+        #     self.panel.Layout()
+        #     self.is_plot_initialized = True
         self.plot.clear_plot()
         self.importer = ReportImporter(self.text_ctrl["file"].GetValue())
         options = self.importer.charting_options
