@@ -12,6 +12,7 @@
 import wx
 from numpy import isnan
 import webbrowser
+from os.path import isfile
 from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
 from iqdma.options import Options, DefaultOptions
@@ -27,6 +28,7 @@ from iqdma.utilities import (
     is_linux,
     scale_bitmap,
     set_frame_icon,
+    ErrorDialog,
 )
 
 
@@ -37,6 +39,8 @@ class MainFrame(wx.Frame):
 
         # Prevent resize event triggers during app launch
         self.allow_window_size_save = False
+
+        self.range_update_needed = True
 
         self.user_settings = None
         self.export_figure = None
@@ -155,7 +159,11 @@ class MainFrame(wx.Frame):
 
     def __add_layout_objects(self):
         self.text_ctrl = {"file": wx.TextCtrl(self.panel, wx.ID_ANY, "")}
-        self.button = {"browse": wx.Button(self.panel, wx.ID_ANY, "Browse")}
+        self.button = {
+            "browse": wx.Button(self.panel, wx.ID_ANY, "Browse…"),
+            "refresh": wx.Button(self.panel, wx.ID_REFRESH),
+        }
+        self.button["refresh"].Disable()
 
         self.check_box = {
             "hippa": wx.CheckBox(self.panel, wx.ID_ANY, "HIPPA Mode")
@@ -173,8 +181,29 @@ class MainFrame(wx.Frame):
                 min=2,
                 max=100,
                 style=wx.SP_ARROW_KEYS,
-            )
+            ),
+            "start": wx.SpinCtrl(
+                self.panel,
+                wx.ID_ANY,
+                "1",
+                min=1,
+                max=100,
+                style=wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER,
+            ),
+            "stop": wx.SpinCtrl(
+                self.panel,
+                wx.ID_ANY,
+                "1",
+                min=1,
+                max=100,
+                style=wx.SP_ARROW_KEYS,
+            ),
         }
+        for key in self.spin_ctrl.keys():
+            self.text_ctrl[key] = self.spin_ctrl[key].GetChildren()[0]
+            self.text_ctrl[key].SetWindowStyle(
+                self.text_ctrl[key].GetWindowStyle() | wx.TE_PROCESS_ENTER
+            )
 
         style = (
             wx.BORDER_SUNKEN
@@ -202,6 +231,10 @@ class MainFrame(wx.Frame):
     def __do_bind(self):
         self.Bind(
             wx.EVT_BUTTON, self.on_browse, id=self.button["browse"].GetId()
+        )
+        self.Bind(wx.EVT_BUTTON, self.on_refresh, id=wx.ID_REFRESH)
+        self.Bind(
+            wx.EVT_TEXT, self.enable_refresh, id=self.text_ctrl["file"].GetId()
         )
         self.Bind(wx.EVT_SIZE, self.on_resize)
         self.Bind(wx.EVT_MOVE, self.on_move)
@@ -233,6 +266,31 @@ class MainFrame(wx.Frame):
         )
         self.Bind(
             wx.EVT_SPINCTRL,
+            self.on_range_spin,
+            id=self.spin_ctrl["start"].GetId(),
+        )
+        self.Bind(
+            wx.EVT_SPINCTRL,
+            self.on_range_spin,
+            id=self.spin_ctrl["stop"].GetId(),
+        )
+        self.Bind(
+            wx.EVT_TEXT_ENTER,
+            self.on_range_spin,
+            id=self.spin_ctrl["start"].GetId(),
+        )
+        self.Bind(
+            wx.EVT_TEXT_ENTER,
+            self.on_range_spin,
+            id=self.spin_ctrl["stop"].GetId(),
+        )
+        self.Bind(
+            wx.EVT_SPINCTRL,
+            self.update_report_data_from_hist,
+            id=self.spin_ctrl["bins"].GetId(),
+        )
+        self.Bind(
+            wx.EVT_TEXT_ENTER,
             self.update_report_data_from_hist,
             id=self.spin_ctrl["bins"].GetId(),
         )
@@ -251,14 +309,25 @@ class MainFrame(wx.Frame):
         self.sizer["file"].Add(
             self.text_ctrl["file"], 1, wx.EXPAND | wx.ALL, 5
         )
+        self.sizer["file"].Add(self.button["refresh"], 0, wx.ALL, 5)
         self.sizer["file"].Add(self.button["browse"], 0, wx.ALL, 5)
 
         # Analysis Criteria Objects
         self.sizer["criteria"].Add(
-            self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 10
+            self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 5
         )
 
         self.sizer["y"].Add(self.check_box["hippa"], 1, wx.EXPAND | wx.LEFT, 5)
+        label_start = wx.StaticText(self.panel, wx.ID_ANY, "Start:")
+        self.sizer["y"].Add(label_start, 0, wx.EXPAND, 0)
+        self.sizer["y"].Add(
+            self.spin_ctrl["start"], 0, wx.EXPAND | wx.RIGHT, 10
+        )
+        label_end = wx.StaticText(self.panel, wx.ID_ANY, "Stop:")
+        self.sizer["y"].Add(label_end, 0, wx.EXPAND, 0)
+        self.sizer["y"].Add(
+            self.spin_ctrl["stop"], 0, wx.EXPAND | wx.RIGHT, 10
+        )
         label_bins = wx.StaticText(self.panel, wx.ID_ANY, "Hist. Bins:")
         self.sizer["y"].Add(label_bins, 0, wx.EXPAND, 0)
         self.sizer["y"].Add(
@@ -266,15 +335,15 @@ class MainFrame(wx.Frame):
         )
         label = wx.StaticText(self.panel, wx.ID_ANY, "Charting Variable:")
         self.sizer["y"].Add(label, 0, wx.EXPAND, 0)
-        self.sizer["y"].Add(self.combo_box["y"], 0, 0, 0)
+        self.sizer["y"].Add(self.combo_box["y"], 0, wx.RIGHT, 5)
         self.sizer["main"].Add(self.sizer["y"], 0, wx.EXPAND, 0)
 
         self.plot.init_layout()
         self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
 
-        wrapper.Add(self.sizer["file"], 0, wx.ALL | wx.EXPAND, 10)
-        wrapper.Add(self.sizer["criteria"], 0, wx.ALL | wx.EXPAND, 10)
-        wrapper.Add(self.sizer["main"], 1, wx.EXPAND | wx.ALL, 10)
+        wrapper.Add(self.sizer["file"], 0, wx.ALL | wx.EXPAND, 5)
+        wrapper.Add(self.sizer["criteria"], 0, wx.ALL | wx.EXPAND, 5)
+        wrapper.Add(self.sizer["main"], 1, wx.EXPAND | wx.ALL, 5)
 
         self.panel.SetSizer(wrapper)
         self.SetMinSize(self.options.MIN_RESOLUTION_MAIN)
@@ -333,6 +402,12 @@ class MainFrame(wx.Frame):
                 pass
 
     def on_save(self, evt):
+        if not self.report_data:
+            msg = "Please load data from CSV first."
+            caption = "No Chart to Save!"
+            ErrorDialog(self, msg, caption)
+            return
+
         if self.export_figure is None:
             try:
                 self.export_figure = ExportFigure(self)
@@ -380,6 +455,14 @@ class MainFrame(wx.Frame):
 
         dlg.Destroy()
 
+    def on_refresh(self, *evt):
+        self.import_csv()
+
+    def enable_refresh(self, *evt):
+        self.button["refresh"].Enable(
+            isfile(self.text_ctrl["file"].GetValue())
+        )
+
     ################################################################
     # Data Processing and Visualization
     ################################################################
@@ -395,6 +478,7 @@ class MainFrame(wx.Frame):
         self.combo_box["y"].Clear()
         self.combo_box["y"].Append(options)
         self.combo_box["y"].SetValue(options[0])
+        self.range_update_needed = True
         self.update_report_data()
 
     def update_report_data(self, *evt):
@@ -410,26 +494,47 @@ class MainFrame(wx.Frame):
         table, columns = self.report_data.get_index_description()
         self.data_table.set_data(table, columns)
         self.data_table.set_column_widths(auto=True)
-        self.control_chart_data = self.report_data.univariate_control_charts(
-            ucl_limit=self.ucl, lcl_limit=self.lcl
-        )
+
+        if self.range_update_needed:
+            self.update_range_spinners()
+
+        self.update_control_chart_data()
+
         if len(table[columns[0]]):
             if index > self.data_table.row_count:
                 index = 0
             self.list_ctrl_table.Select(index)
+            self.range_update_needed = False
+
+    def update_range_spinners(self):
+        if self.report_data and self.report_data.x_axis:
+            max_length = len(self.report_data.x_axis)
+        else:
+            max_length = 0
+
+        self.spin_ctrl["stop"].SetMax(max_length)
+        self.spin_ctrl["start"].SetValue(1)
+        self.spin_ctrl["stop"].SetValue(max_length)
+
+        self.spin_ctrl["start"].SetMax(self.spin_ctrl["stop"].GetValue())
+        self.spin_ctrl["stop"].SetMin(self.spin_ctrl["start"].GetValue())
+
+    @property
+    def range(self):
+        return [self.spin_ctrl[key].GetValue() for key in ["start", "stop"]]
+
+    def update_control_chart_data(self):
+        self.control_chart_data = self.report_data.univariate_control_charts(
+            ucl_limit=self.ucl, lcl_limit=self.lcl, range=self.range
+        )
+        self.on_table_select()
+
+    def on_range_spin(self, *evt):
+        self.update_control_chart_data()
 
     def update_report_data_from_hist(self, *evt):
-        # if hasattr(evt[0], "GetKeyCode"):
-        #     keycode = evt[0].GetKeyCode()
-        #     print(keycode)
-        #
-        #     if keycode != wx.WXK_RETURN:
-        #         return
-        #     else:
-        #         evt[0].Skip()
-
         self.set_to_hist = True
-        self.update_report_data()
+        self.update_control_chart_data()
 
     @property
     def charting_variable(self):
@@ -466,11 +571,12 @@ class MainFrame(wx.Frame):
                 for v in self.report_data.uid_data
             ]
             dates = self.report_data.x_axis
+        start, stop = tuple(self.range)
         kwargs = {
             "x": data["x"],
             "y": data["y"],
-            "data_id": data_id,
-            "dates": dates,
+            "data_id": data_id[start - 1 : stop],
+            "dates": dates[start - 1 : stop],
             "center_line": ucc.center_line,
             "ucl": ucl,
             "lcl": lcl,

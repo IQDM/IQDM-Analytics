@@ -26,7 +26,7 @@ from iqdma.utilities import (
     ErrorDialog,
     get_windows_webview_backend,
 )
-from iqdma.paths import TEMP_DIR
+from iqdma.paths import TEMP_DIR, APP_DIR
 from iqdma.options import Options
 import numpy as np
 
@@ -351,7 +351,7 @@ class Plot:
                 msg = (
                     "Please download a phantomjs executable from "
                     "https://phantomjs.org/download.html and store in "
-                    "~/Apps/iqdm_analytics/ or try a phantomjs installation "
+                    f"{APP_DIR} or try a phantomjs installation "
                     "with conda or npm"
                 )
             else:
@@ -477,6 +477,7 @@ class PlotControlChart(Plot):
         ]
 
     def __create_divs(self):
+        self.div_total = Div(text="", width=100)
         self.div_center_line = Div(text="", width=150)
         self.div_ucl = Div(text="", width=100)
         self.div_lcl = Div(text="", width=100)
@@ -488,11 +489,12 @@ class PlotControlChart(Plot):
         control_chart = column(
             self.figure,
             row(
+                self.div_total,
+                self.div_ic,
+                self.div_ooc,
                 self.div_center_line,
                 self.div_ucl,
                 self.div_lcl,
-                self.div_ic,
-                self.div_ooc,
             ),
         )
         histogram = column(Spacer(height=30), self.histogram)
@@ -577,6 +579,9 @@ class PlotControlChart(Plot):
                 "data_id": ["center line"] * 2,
             }
 
+            self.div_total.text = "<b>Total</b>: %d" % np.count_nonzero(
+                ~np.isnan(y)
+            )
             self.div_center_line.text = (
                 "<b>Center line</b>: %0.3f" % center_line
             )

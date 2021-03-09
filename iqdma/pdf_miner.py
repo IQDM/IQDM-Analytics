@@ -185,7 +185,7 @@ class ProgressFrame(wx.Dialog):
             label = self.label_progress.GetLabel()
             if "/" in label:
                 count = self.label_progress.GetLabel().split("/")[1]
-                label = f"COMPLETE: Processed {count} file(s))"
+                label = f"COMPLETE: Processed {count} file(s)"
             else:
                 label = "COMPLETE"
             wx.CallAfter(self.label_progress.SetLabelText, label)

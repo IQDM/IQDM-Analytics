@@ -38,12 +38,6 @@ class DefaultOptions:
         self.GRID_LINE_WIDTH = 1
         self.GRID_ALPHA = 1.0
 
-        # Number of data points are reduced by this factor during dynamic
-        # plot interaction to speed-up visualizations
-        # This is only applied to the DVH plot since it has a large amount
-        # of data
-        self.LOD_FACTOR = 100
-
         # Options for the time-series plot
         self.CONTROL_CHART_CIRCLE_SIZE = 10
         self.CONTROL_CHART_CIRCLE_ALPHA = 0.5
@@ -72,10 +66,10 @@ class DefaultOptions:
 
         self.save_fig_param = {
             "figure": {
-                "y_range_start": -0.0005,
-                "x_range_start": 0.0,
-                "y_range_end": 1.0005,
-                "x_range_end": 10000.0,
+                # "y_range_start": -0.0005,
+                # "x_range_start": 0.0,
+                # "y_range_end": 1.0005,
+                # "x_range_end": 10000.0,
                 "background_fill_color": "none",
                 "border_fill_color": "none",
                 "plot_height": 600,

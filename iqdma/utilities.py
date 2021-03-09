@@ -114,7 +114,7 @@ def get_wildcards(extensions):
     )
 
 
-FIG_WILDCARDS = get_wildcards(["svg", "html", "png"])
+FIG_WILDCARDS = get_wildcards(["png", "html", "svg"])
 
 
 def get_windows_webview_backend(include_edge=False):

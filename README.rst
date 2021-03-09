@@ -52,8 +52,6 @@ TODO
 - Ability to cancel PDF-Miner thread
 - Documentation
 - Docstrings
-- PyInstaller
-- Update License
 - Error Log
 
 

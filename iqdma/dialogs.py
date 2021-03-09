@@ -279,7 +279,7 @@ class UserSettings(wx.Frame):
         sizer_colors_input.Add((20, 20), 0, 0, 0)
         sizer_colors_input.Add(self.combo_box_colors_selection, 0, 0, 0)
         sizer_colors.Add(sizer_colors_input, 1, wx.EXPAND, 0)
-        sizer_plot_options.Add(sizer_colors, 1, wx.EXPAND, 0)
+        sizer_plot_options.Add(sizer_colors, 1, wx.EXPAND | wx.BOTTOM, 10)
 
         label_sizes = wx.StaticText(self, wx.ID_ANY, "Sizes:")
         sizer_sizes.Add(label_sizes, 0, 0, 0)
@@ -287,7 +287,7 @@ class UserSettings(wx.Frame):
         sizer_sizes_input.Add((20, 20), 0, 0, 0)
         sizer_sizes_input.Add(self.spin_ctrl_sizes_input, 0, 0, 0)
         sizer_sizes.Add(sizer_sizes_input, 1, wx.EXPAND, 0)
-        sizer_plot_options.Add(sizer_sizes, 1, wx.EXPAND, 0)
+        sizer_plot_options.Add(sizer_sizes, 1, wx.EXPAND | wx.BOTTOM, 10)
 
         label_line_widths = wx.StaticText(self, wx.ID_ANY, "Line Widths:")
         sizer_line_widths.Add(label_line_widths, 0, 0, 0)
@@ -297,7 +297,7 @@ class UserSettings(wx.Frame):
         sizer_line_widths_input.Add((20, 20), 0, 0, 0)
         sizer_line_widths_input.Add(self.spin_ctrl_line_widths_input, 0, 0, 0)
         sizer_line_widths.Add(sizer_line_widths_input, 1, wx.EXPAND, 0)
-        sizer_plot_options.Add(sizer_line_widths, 1, wx.EXPAND, 0)
+        sizer_plot_options.Add(sizer_line_widths, 1, wx.EXPAND | wx.BOTTOM, 10)
 
         label_line_styles = wx.StaticText(self, wx.ID_ANY, "Line Styles:")
         sizer_line_styles.Add(label_line_styles, 0, 0, 0)
@@ -309,7 +309,7 @@ class UserSettings(wx.Frame):
             self.combo_box_line_styles_selection, 0, 0, 0
         )
         sizer_line_styles.Add(sizer_line_styles_input, 1, wx.EXPAND, 0)
-        sizer_plot_options.Add(sizer_line_styles, 1, wx.EXPAND, 0)
+        sizer_plot_options.Add(sizer_line_styles, 1, wx.EXPAND | wx.BOTTOM, 10)
 
         label_alpha = wx.StaticText(self, wx.ID_ANY, "Alpha:")
         sizer_alpha.Add(label_alpha, 0, 0, 0)
@@ -330,7 +330,7 @@ class UserSettings(wx.Frame):
         sizer_n_jobs.Add(label_n_jobs, 0, 0, 0)
         sizer_n_jobs.Add((20, 20), 0, 0, 0)
         sizer_n_jobs.Add(self.spin_ctrl_n_jobs, 0, 0, 0)
-        sizer_iqdm_pdf_options.Add(sizer_n_jobs, 0, wx.EXPAND, 0)
+        sizer_iqdm_pdf_options.Add(sizer_n_jobs, 0, wx.EXPAND | wx.BOTTOM, 10)
 
         label_ext = wx.StaticText(self, wx.ID_ANY, "Analyze .pdf only:")
         sizer_pdf_ext.Add(label_ext, 0, 0, 0)
@@ -340,7 +340,7 @@ class UserSettings(wx.Frame):
         sizer_wrapper.Add(
             sizer_iqdm_pdf_options,
             0,
-            wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP,
+            wx.EXPAND | wx.ALL,
             10,
         )
 

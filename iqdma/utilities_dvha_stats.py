@@ -244,8 +244,8 @@ def widen_data(
                         print(
                             "WARNING: Multiple values found for uid: %s, "
                             "date: %s, param: %s. Only the %s value is "
-                            "included in widen_data output." %
-                            (uid, date, x, multi_val_policy)
+                            "included in widen_data output."
+                            % (uid, date, x, multi_val_policy)
                         )
                     if multi_val_policy == "last":
                         value = values[-1]

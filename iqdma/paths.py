@@ -44,7 +44,7 @@ for key, value in ICONS.items():
 
 
 def set_phantom_js_path_environment():
-    """Edit the PATH environment for PhantomJS (for Bokeh's .svg export)"""
+    """Edit the PATH environment for PhantomJS (for Bokeh's image export)"""
     phantom_js_path = getattr(sys, "_MEIPASS", APP_DIR)
     if phantom_js_path not in environ["PATH"]:
         environ["PATH"] += pathsep + phantom_js_path

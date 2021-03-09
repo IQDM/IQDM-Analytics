@@ -109,31 +109,31 @@ class ExportFigure(wx.Frame):
                         obj_type
                     ][-1]
 
-        self.label_plot = wx.StaticText(self, wx.ID_ANY, "Plot:")
-        self.combo_plot = wx.ComboBox(
-            self, wx.ID_ANY, style=wx.CB_DROPDOWN | wx.TE_READONLY
-        )
+        # self.label_plot = wx.StaticText(self, wx.ID_ANY, "Plot:")
+        # self.combo_plot = wx.ComboBox(
+        #     self, wx.ID_ANY, style=wx.CB_DROPDOWN | wx.TE_READONLY
+        # )
 
-        self.include_range = wx.CheckBox(self, wx.ID_ANY, "Apply Range Edits")
+        # self.include_range = wx.CheckBox(self, wx.ID_ANY, "Apply Range Edits")
 
     def __set_properties(self):
         self.SetTitle("Export Figure")
 
-        self.combo_plot.SetItems(sorted(list(self.plots)))
-        self.combo_plot.SetValue("Control Chart")
+        # self.combo_plot.SetItems(sorted(list(self.plots)))
+        # self.combo_plot.SetValue("Control Chart")
 
-        range_init = (
-            self.options.apply_range_edits
-            if hasattr(self.options, "apply_range_edits")
-            else False
-        )
-        self.include_range.SetValue(range_init)
-        self.include_range.SetToolTip(
-            "Check this to alter the ranges from the current view. Leave a range field blank "
-            "to use the current view's value.\n"
-            "NOTE: These range edits do not apply to Machine Learning plot saves."
-        )
-        self.on_checkbox()  # Disable Range input objects by default
+        # range_init = (
+        #     self.options.apply_range_edits
+        #     if hasattr(self.options, "apply_range_edits")
+        #     else False
+        # )
+        # self.include_range.SetValue(range_init)
+        # self.include_range.SetToolTip(
+        #     "Check this to alter the ranges from the current view. Leave a range field blank "
+        #     "to use the current view's value.\n"
+        #     "NOTE: These range edits do not apply to Machine Learning plot saves."
+        # )
+        # self.on_checkbox()  # Disable Range input objects by default
 
     def __do_bind(self):
         self.Bind(
@@ -141,9 +141,9 @@ class ExportFigure(wx.Frame):
         )
         self.Bind(wx.EVT_BUTTON, self.on_dismiss, id=wx.ID_CANCEL)
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        self.Bind(
-            wx.EVT_CHECKBOX, self.on_checkbox, id=self.include_range.GetId()
-        )
+        # self.Bind(
+        #     wx.EVT_CHECKBOX, self.on_checkbox, id=self.include_range.GetId()
+        # )
 
     def __do_layout(self):
         sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
@@ -156,7 +156,7 @@ class ExportFigure(wx.Frame):
         }
         sizer_buttons = wx.BoxSizer(wx.HORIZONTAL)
 
-        sizer_input["figure"].Add(self.include_range, 0, 0, 0)
+        # sizer_input["figure"].Add(self.include_range, 0, 0, 0)
 
         for obj_type in ["figure", "legend"]:
             for i, input_obj in enumerate(self.input[obj_type]):
@@ -171,11 +171,11 @@ class ExportFigure(wx.Frame):
                 )
             sizer_main.Add(sizer_input[obj_type], 0, wx.EXPAND | wx.ALL, 5)
 
-        sizer_main.Add(self.label_plot, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
-        sizer_main.Add(self.combo_plot, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        # sizer_main.Add(self.label_plot, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
+        # sizer_main.Add(self.combo_plot, 0, wx.EXPAND | wx.LEFT | wx.RIGHT, 10)
 
-        sizer_buttons.Add(self.button["Export"], 1, wx.EXPAND | wx.ALL, 5)
         sizer_buttons.Add(self.button["Dismiss"], 1, wx.EXPAND | wx.ALL, 5)
+        sizer_buttons.Add(self.button["Export"], 1, wx.EXPAND | wx.ALL, 5)
         sizer_main.Add(sizer_buttons, 1, wx.EXPAND | wx.ALL, 5)
 
         sizer_wrapper.Add(sizer_main, 0, wx.EXPAND | wx.ALL, 5)
@@ -190,7 +190,8 @@ class ExportFigure(wx.Frame):
 
     @property
     def plot(self):
-        return self.plots[self.combo_plot.GetValue()]
+        # return self.plots[self.combo_plot.GetValue()]
+        return self.plots["Control Chart"]
 
     @property
     def save_plot_function(self):
@@ -198,9 +199,14 @@ class ExportFigure(wx.Frame):
 
     def on_export(self, *evt):
         self.validate_input()
+        # self.plot.save_figure_dlg(
+        #     self,
+        #     "Save %s Figure" % self.combo_plot.GetValue(),
+        #     attr_dicts=self.attr_dicts,
+        # )
         self.plot.save_figure_dlg(
             self,
-            "Save %s Figure" % self.combo_plot.GetValue(),
+            "Save Control Chart Figure",
             attr_dicts=self.attr_dicts,
         )
 
@@ -226,10 +232,10 @@ class ExportFigure(wx.Frame):
             key: self.getter[type(value)](obj_type + "_" + key)
             for key, value in self.options.save_fig_param[obj_type].items()
             if save_mode
-            or (
-                "range" not in key
-                or ("range" in key and self.include_range.GetValue())
-            )
+            # or (
+            #     "range" not in key
+            #     or ("range" in key and self.include_range.GetValue())
+            # )
         }
 
     @property
@@ -256,14 +262,14 @@ class ExportFigure(wx.Frame):
 
     def save_options(self):
         self.options.save_fig_param = self.save_attr_dicts
-        self.options.apply_range_edits = self.include_range.GetValue()
+        # self.options.apply_range_edits = self.include_range.GetValue()
         self.options.save()
 
-    def on_checkbox(self, *evt):
-        for i, obj in enumerate(self.input["figure"]):
-            if "Range" in self.label["figure"][i].GetLabel():
-                self.label["figure"][i].Enable(self.include_range.GetValue())
-                obj.Enable(self.include_range.GetValue())
+    # def on_checkbox(self, *evt):
+    #     for i, obj in enumerate(self.input["figure"]):
+    #         if "Range" in self.label["figure"][i].GetLabel():
+    #             self.label["figure"][i].Enable(self.include_range.GetValue())
+    #             obj.Enable(self.include_range.GetValue())
 
     def validate_input(self):
         """If any TextCtrl is invalid, set to stored options"""

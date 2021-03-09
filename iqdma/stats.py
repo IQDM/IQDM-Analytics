@@ -35,8 +35,8 @@ class IQDMStats:
         self.criteria_columns = imported_data.criteria_col
         self.criteria_options = imported_data.criteria_options
 
-        self.data, self.var_names = import_data(data['data'])
-        self.x_axis = data['x_axis']
+        self.data, self.var_names = import_data(data["data"])
+        self.x_axis = data["x_axis"]
 
     def print_data_index_by_criteria(self):
         for i, var_name in enumerate(self.var_names):
@@ -100,6 +100,7 @@ class IQDMStats:
         std=3,
         ucl_limit=None,
         lcl_limit=None,
+        range=None,
     ):
         """
         Calculate control limits for a standard univariate Control Chart
@@ -121,7 +122,12 @@ class IQDMStats:
         stats.ControlChart
             stats.ControlChart class object
         """
-        kwargs = {"std": std, "ucl_limit": ucl_limit, "lcl_limit": lcl_limit}
+        kwargs = {
+            "std": std,
+            "ucl_limit": ucl_limit,
+            "lcl_limit": lcl_limit,
+            "range": range,
+        }
         index = self.get_index_by_var_name(var_name)
         return ControlChart(self.data[:, index], **kwargs)
 
@@ -170,6 +176,7 @@ class ControlChart:
         ucl_limit=None,
         lcl_limit=None,
         x=None,
+        range=None,
     ):
         """Initialization of a ControlChart"""
 
@@ -178,6 +185,7 @@ class ControlChart:
         self.std = std
         self.ucl_limit = ucl_limit
         self.lcl_limit = lcl_limit
+        self.range = range
 
         # since moving range is calculated based on 2 consecutive points
         self.scalar_d = 1.128
@@ -196,6 +204,22 @@ class ControlChart:
         return str(self)
 
     @property
+    def x_ranged(self):
+        return (
+            self.x
+            if self.range is None
+            else self.x[self.range[0] - 1 : self.range[1]]
+        )
+
+    @property
+    def y_ranged(self):
+        return (
+            self.y
+            if self.range is None
+            else self.y[self.range[0] - 1 : self.range[1]]
+        )
+
+    @property
     def center_line(self):
         """Center line of charting data (i.e., mean value)
 
@@ -204,7 +228,7 @@ class ControlChart:
         np.ndarray, np.nan
             Mean value of y with np.mean() or np.nan if y is empty
         """
-        data = remove_nan(self.y)
+        data = remove_nan(self.y_ranged)
         if len(data):
             return np.mean(data)
         return np.nan
@@ -218,7 +242,7 @@ class ControlChart:
         np.ndarray, np.nan
             Average moving range. Returns NaN if arr is empty.
         """
-        return avg_moving_range(self.y, nan_policy="omit")
+        return avg_moving_range(self.y_ranged, nan_policy="omit")
 
     @property
     def sigma(self):
@@ -266,8 +290,8 @@ class ControlChart:
             control limits
         """
         lcl, ucl = self.control_limits
-        high = np.argwhere(self.y > ucl)
-        low = np.argwhere(self.y < lcl)
+        high = np.argwhere(self.y_ranged > ucl)
+        low = np.argwhere(self.y_ranged < lcl)
         return np.unique(np.concatenate([high, low]))
 
     @property
@@ -280,7 +304,7 @@ class ControlChart:
             An array of indices that are greater than the upper control limit
         """
         _, ucl = self.control_limits
-        return np.argwhere(self.y > ucl)
+        return np.argwhere(self.y_ranged > ucl)
 
     @property
     def out_of_control_low(self):
@@ -292,7 +316,7 @@ class ControlChart:
             An array of indices that are less than the lower control limit
         """
         lcl, _ = self.control_limits
-        return np.argwhere(self.y < lcl)
+        return np.argwhere(self.y_ranged < lcl)
 
     @property
     def chart_data(self):
@@ -306,8 +330,8 @@ class ControlChart:
         """
         lcl, ucl = self.control_limits
         return {
-            "x": self.x.tolist(),
-            "y": self.y.tolist(),
+            "x": self.x_ranged.tolist(),
+            "y": self.y_ranged.tolist(),
             "out_of_control": self.out_of_control.tolist(),
             "center_line": float(self.center_line),
             "lcl": float(lcl),
