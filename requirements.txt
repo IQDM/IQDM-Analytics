@@ -1,7 +1,7 @@
 iqdmpdf >= 0.2.8
-dvha-stats >= 0.2.4.post1
 wxpython
 bokeh>=1.2.0,<2.0.0
 numpy
 selenium
 pypubsub
+python-dateutil
