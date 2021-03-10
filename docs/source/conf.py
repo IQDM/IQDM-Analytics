@@ -76,3 +76,5 @@ latex_elements = {"extraclassoptions": "openany,oneside"}
 autoclass_content = "both"
 
 modindex_common_prefix = ["iqdma."]
+
+autodoc_mock_imports = ['wx']
