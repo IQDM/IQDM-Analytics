@@ -43,18 +43,46 @@ class ReportImporter:
 
     @property
     def uid_col(self) -> list:
+        """Column names, when combined create a UID
+
+        Returns
+        -------
+        list
+            Column names from ``analysis_columns['uid']``
+        """
         return [self.columns[i] for i in self.analysis_columns["uid"]]
 
     @property
     def criteria_col(self) -> list:
+        """Column names of analysis criteria options
+
+        Returns
+        -------
+        list
+            Column names from ``analysis_columns['criteria']``
+        """
         return [self.columns[i] for i in self.analysis_columns["criteria"]]
 
     @property
-    def charting_options(self):
+    def charting_options(self) -> list:
+        """Column names of y-axis options
+
+        Returns
+        -------
+        list
+            Column names from ``analysis_columns['y']``
+        """
         return [self.columns[y["index"]] for y in self.analysis_columns["y"]]
 
     @property
-    def ucl(self):
+    def ucl(self) -> dict:
+        """Upper Control Limit caps
+
+        Returns
+        -------
+        dict
+            keys are column names, values are maximum UCL values (or None)
+        """
         y_names = self.charting_options
         return {
             y_names[i]: y["ucl_limit"]
@@ -63,36 +91,46 @@ class ReportImporter:
 
     @property
     def lcl(self):
+        """Lower Control Limit minimums
+
+        Returns
+        -------
+        dict
+            keys are column names, values are minimum LCL values (or None)
+        """
         y_names = self.charting_options
         return {
             y_names[i]: y["lcl_limit"]
             for i, y in enumerate(self.analysis_columns["y"])
         }
 
-    @property
-    def criteria_options(self) -> dict:
-        ans = {}
-        for col in self.criteria_col:
-            clean_options = []
-            for option in set(self.data_dict[col]):
-                try:
-                    clean_options.append(str(float(option)))
-                except ValueError:
-                    clean_options.append(option)
-            ans[col] = sorted(list(set(clean_options)))
+    @staticmethod
+    def delta4_dtype_func(val: str) -> float:
+        """Process Delta4 report values, use to highjack ``dtype`` in
+        ``widen_data``
 
-        return ans
+        Parameters
+        ----------
+        val : str
+            Value from Delta4 IQDM-PDF CSV output
 
-    def delta4_dtype_func(self, val):
+        Returns
+        -------
+        float
+            ``val`` converted into a float
+        """
         val = val.strip()
-        if "%" in val:
-            return float(val.split("%")[0].strip())
-        elif " " in val:
-            return float(val.split(" ")[0].strip())
-        return float(val)
+        try:
+            if "%" in val:
+                return float(val.split("%")[0].strip())
+            elif " " in val:
+                return float(val.split(" ")[0].strip())
+            return float(val)
+        except ValueError:
+            return float("nan")
 
     def __call__(self, charting_column: str) -> dict:
-        """
+        """Call ``widen`` data with ``data_dict`` and ``charting_column``
 
         Parameters
         ----------
@@ -101,7 +139,8 @@ class ReportImporter:
 
         Returns
         -------
-        dict
+        dict of list
+            Keys of 'data', 'x_axis', and 'uids'
 
         """
 

@@ -7,6 +7,7 @@ What does it do?
 ----------------
 Desktop application for `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ with statistical analysis.
 
+|screenshot|
 
 Executables
 -----------
@@ -76,6 +77,9 @@ Contributors
 * Aditya Panchal, AMITA Health
 
 
+
+.. |screenshot| image:: https://user-images.githubusercontent.com/4778878/110705765-76173800-81bc-11eb-8c36-af5b523b83ba.jpg
+   :alt: Example Screenshot
 .. |pypi| image:: https://img.shields.io/pypi/v/iqdma.svg
    :target: https://pypi.org/project/iqdma
    :alt: PyPI
