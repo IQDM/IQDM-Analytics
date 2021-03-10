@@ -24,7 +24,7 @@ from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
 from iqdma.options import Options, DefaultOptions
 from iqdma.dialogs import UserSettings, About
-from iqdma.paths import ICONS, APP_DIR
+from iqdma.paths import ICONS, APP_DIR, initialize_directories
 from iqdma.data_table import DataTable
 from iqdma.importer import ReportImporter
 from iqdma.exporter import ExportFigure
@@ -617,13 +617,14 @@ class MainFrame(wx.Frame):
         return [self.spin_ctrl[key].GetValue() for key in ["start", "stop"]]
 
     def update_control_chart_data(self):
-        self.control_chart_data = self.report_data.univariate_control_charts(
-            ucl_limit=self.ucl,
-            lcl_limit=self.lcl,
-            range=self.range,
-            std=self.options.CONTROL_LIMIT_STD_DEV,
-        )
-        self.on_table_select()
+        if self.report_data:
+            self.control_chart_data = self.report_data.univariate_control_charts(
+                ucl_limit=self.ucl,
+                lcl_limit=self.lcl,
+                range=self.range,
+                std=self.options.CONTROL_LIMIT_STD_DEV,
+            )
+            self.on_table_select()
 
     def on_range_spin(self, *evt):
         self.update_control_chart_data()
@@ -706,6 +707,7 @@ class MainApp(wx.App):
 
             set_ie_emulation_level()
             set_ie_lockdown_level()
+        initialize_directories()
         self.SetAppName("IQDM Analytics")
         self.frame = MainFrame(None, wx.ID_ANY, "")
         set_frame_icon(self.frame)

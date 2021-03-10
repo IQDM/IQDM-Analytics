@@ -12,8 +12,8 @@ user's home folder for the OS
 #    available at https://github.com/cutright/DVH-Analytics
 
 import sys
-from os import environ
-from os.path import join, dirname, expanduser, pathsep
+from os import environ, makedirs
+from os.path import join, dirname, expanduser, pathsep, isdir
 
 SCRIPT_DIR = dirname(__file__)
 PARENT_DIR = getattr(
@@ -48,3 +48,10 @@ def set_phantom_js_path_environment():
     phantom_js_path = getattr(sys, "_MEIPASS", APP_DIR)
     if phantom_js_path not in environ["PATH"]:
         environ["PATH"] += pathsep + phantom_js_path
+
+
+def initialize_directories():
+    """Create required directories if they do not exist"""
+    for directory in DIRECTORIES.values():
+        if not isdir(directory):
+            makedirs(directory)
