@@ -181,7 +181,7 @@ def set_frame_icon(frame):
         frame.SetIcon(wx.Icon(WIN_APP_ICON))
 
 
-def get_selected_listctrl_items(list_control):
+def get_selected_listctrl_items(list_control) -> list:
     """Get the indices of the currently selected items of a wx.ListCtrl object
 
     Parameters

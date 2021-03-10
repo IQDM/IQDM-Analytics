@@ -1,11 +1,11 @@
 IQDM-Analytics
 ==============
 
-|pypi| |lgtm| |lgtm-cq| |lines| |repo-size| |code-style|
+|pypi| |Docs| |lgtm| |lgtm-cq| |lines| |repo-size| |code-style|
 
 What does it do?
 ----------------
-Desktop application for `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ with statistical analysis.
+IQMD Analytics is a desktop application for `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ and statistical analysis of its results.
 
 
 Executables
@@ -20,6 +20,8 @@ This library is part of the IMRT QA Data Mining (IQDM) project for
 the AAPM `IMRT Working Group (WGIMRT) <https://www.aapm.org/org/structure/?committee_code=WGIMRT>`__.
 
 -  Free software: `MIT license <https://github.com/IQDM/IQDM-Analytics/blob/master/LICENSE>`__
+
+|screenshot|
 
 
 Dependencies
@@ -76,9 +78,13 @@ Contributors
 * Aditya Panchal, AMITA Health
 
 
+
 .. |pypi| image:: https://img.shields.io/pypi/v/iqdma.svg
    :target: https://pypi.org/project/iqdma
    :alt: PyPI
+.. |Docs| image:: https://readthedocs.org/projects/iqdma/badge/?version=latest
+   :target: https://iqdma.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
 .. |lgtm-cq| image:: https://img.shields.io/lgtm/grade/python/g/IQDM/IQDM-Analytics.svg?logo=lgtm&label=code%20quality
    :target: https://lgtm.com/projects/g/IQDM/IQDM-Analytics/context:python
    :alt: lgtm code quality
@@ -94,3 +100,7 @@ Contributors
 .. |code-style| image:: https://img.shields.io/badge/code%20style-black-000000.svg
    :target: https://github.com/psf/black
    :alt: Code style: black
+
+.. |screenshot| raw:: html
+
+    <img src='https://user-images.githubusercontent.com/4778878/110705765-76173800-81bc-11eb-8c36-af5b523b83ba.jpg' align='center' width='500' alt="IQDM Analytics screenshot">

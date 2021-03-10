@@ -618,11 +618,13 @@ class MainFrame(wx.Frame):
 
     def update_control_chart_data(self):
         if self.report_data:
-            self.control_chart_data = self.report_data.univariate_control_charts(
-                ucl_limit=self.ucl,
-                lcl_limit=self.lcl,
-                range=self.range,
-                std=self.options.CONTROL_LIMIT_STD_DEV,
+            self.control_chart_data = (
+                self.report_data.univariate_control_charts(
+                    ucl_limit=self.ucl,
+                    lcl_limit=self.lcl,
+                    range=self.range,
+                    std=self.options.CONTROL_LIMIT_STD_DEV,
+                )
             )
             self.on_table_select()
 

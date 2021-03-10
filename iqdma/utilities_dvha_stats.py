@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 # utilities.py
-"""Common functions for the DVHA-Stats."""
+"""Common functions for DVHA-Stats. Copied to limit required libraries."""
 #
 # Copyright (c) 2020 Dan Cutright
 # This file is part of DVHA-Stats, released under a MIT license.

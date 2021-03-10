@@ -33,7 +33,6 @@ class IQDMStats:
         self.uid_columns = imported_data.uid_col
         self.uid_data = data["uids"]
         self.criteria_columns = imported_data.criteria_col
-        self.criteria_options = imported_data.criteria_options
 
         self.data, self.var_names = import_data(data["data"])
         self.x_axis = data["x_axis"]
