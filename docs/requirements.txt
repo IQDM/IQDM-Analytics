@@ -1,0 +1,6 @@
+iqdmpdf >= 0.2.8
+bokeh>=1.2.0,<2.0.0
+numpy
+selenium
+pypubsub
+python-dateutil
