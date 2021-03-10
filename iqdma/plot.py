@@ -483,8 +483,8 @@ class PlotControlChart(Plot):
 
     def __create_divs(self):
         self.div_total = Div(text="", width=80)
-        self.div_std = Div(text="", width=50)
-        self.div_ic = Div(text="", width=70)
+        self.div_std = Div(text="", width=80)
+        self.div_ic = Div(text="", width=65)
         self.div_ooc = Div(text="", width=80)
         self.div_center_line = Div(text="", width=150)
         self.div_ucl = Div(text="", width=120)
@@ -593,7 +593,7 @@ class PlotControlChart(Plot):
             self.div_center_line.text = (
                 "<b>Center line</b>: %0.3f" % center_line
             )
-            self.div_std.text = "<b>σ</b>: %s" % std
+            self.div_std.text = "<b>sigma</b>: %s" % std
             self.div_ucl.text = "<b>UCL</b>: %0.3f" % ucl
             self.div_lcl.text = "<b>LCL</b>: %0.3f" % lcl
             self.div_ic.text = "<b>IC</b>: %d" % ic.count(True)
