@@ -19,7 +19,12 @@ class DataTable:
     """Helper class for wx.ListCtrl"""
 
     def __init__(
-        self, list_ctrl: wx.ListCtrl, data: dict = None, columns: list = None, widths: list = None, formats: list = None
+        self,
+        list_ctrl: wx.ListCtrl,
+        data: dict = None,
+        columns: list = None,
+        widths: list = None,
+        formats: list = None,
     ):
         """Init DataTable class
 
@@ -59,7 +64,13 @@ class DataTable:
             self.set_data(data, columns, formats=formats)
         self.set_data_in_layout()
 
-    def set_data(self, data: dict, columns: list, formats: list = None, ignore_layout: bool = False):
+    def set_data(
+        self,
+        data: dict,
+        columns: list,
+        formats: list = None,
+        ignore_layout: bool = False,
+    ):
         """Set data and update layout
 
         Parameters
@@ -203,7 +214,9 @@ class DataTable:
             for i, key in enumerate(self.keys):
                 self.data[key].append(row[i])
 
-    def delete_all_rows(self, layout_only: bool = False, force_delete_data: bool = False):
+    def delete_all_rows(
+        self, layout_only: bool = False, force_delete_data: bool = False
+    ):
         """Clear all data from ``data`` and the layout view
 
         Parameters
@@ -303,7 +316,7 @@ class DataTable:
 
         csv_data = []
         for row in self.data_for_csv:
-            row = [str(el).replace('\n', '<>') for el in row]
+            row = [str(el).replace("\n", "<>") for el in row]
             csv_data.append(",".join(row))
 
         return csv_data
