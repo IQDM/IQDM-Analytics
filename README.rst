@@ -5,9 +5,8 @@ IQDM-Analytics
 
 What does it do?
 ----------------
-Desktop application for `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ with statistical analysis.
+IQMD Analytics is a desktop application for `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ and statistical analysis of its results.
 
-|screenshot|
 
 Executables
 -----------
@@ -21,6 +20,8 @@ This library is part of the IMRT QA Data Mining (IQDM) project for
 the AAPM `IMRT Working Group (WGIMRT) <https://www.aapm.org/org/structure/?committee_code=WGIMRT>`__.
 
 -  Free software: `MIT license <https://github.com/IQDM/IQDM-Analytics/blob/master/LICENSE>`__
+
+|screenshot|
 
 
 Dependencies
