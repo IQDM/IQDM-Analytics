@@ -9,6 +9,13 @@
 #    See the file LICENSE included with this distribution, also
 #    available at https://github.com/IQDM/IQDM-Analytics
 
+import logging, logging.handlers
+import sys, threading, traceback, os
+from pubsub import pub
+
+logger = logging.getLogger("iqdma")
+logger.setLevel(logging.DEBUG)
+
 import wx
 from numpy import isnan
 import webbrowser
@@ -17,7 +24,7 @@ from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
 from iqdma.options import Options, DefaultOptions
 from iqdma.dialogs import UserSettings, About
-from iqdma.paths import ICONS
+from iqdma.paths import ICONS, APP_DIR
 from iqdma.data_table import DataTable
 from iqdma.importer import ReportImporter
 from iqdma.exporter import ExportFigure
@@ -29,6 +36,7 @@ from iqdma.utilities import (
     scale_bitmap,
     set_frame_icon,
     ErrorDialog,
+    main_is_frozen,
 )
 
 
@@ -36,6 +44,64 @@ class MainFrame(wx.Frame):
     def __init__(self, *args, **kwds):
         kwds["style"] = kwds.get("style", 0) | wx.DEFAULT_FRAME_STYLE
         wx.Frame.__init__(self, *args, **kwds)
+
+        #######################################################################
+        # The following block of code for logging adapted from dicompyler
+        #######################################################################
+        # Initialize logging
+        logger = logging.getLogger("iqdma")
+
+        # Configure the exception hook to process threads as well
+        self.InstallThreadExcepthook()
+
+        # Remap the exception hook so that we can log and display exceptions
+        def LogExcepthook(*exc_info):
+            # Log the exception
+            text = "".join(traceback.format_exception(*exc_info))
+            logger.error("Unhandled exception: %s", text)
+            pub.sendMessage("logging.exception", msg=text)
+
+        sys.excepthook = LogExcepthook
+
+        # Modify the logging system from pydicom to capture important messages
+        pydicom_logger = logging.getLogger("pydicom")
+        for l in pydicom_logger.handlers:
+            pydicom_logger.removeHandler(l)
+
+        # Add file logger
+        logpath = os.path.join(APP_DIR, "logs")
+        if not os.path.exists(logpath):
+            os.makedirs(logpath)
+        self.fh = logging.handlers.RotatingFileHandler(
+            os.path.join(logpath, "iqdma.log"), maxBytes=524288, backupCount=7
+        )
+        self.fh.setFormatter(
+            logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+        )
+        self.fh.setLevel(logging.WARNING)
+        logger.addHandler(self.fh)
+        pydicom_logger.addHandler(self.fh)
+
+        # Add console logger if not frozen
+        if not main_is_frozen():
+            self.ch = logging.StreamHandler()
+            self.ch.setFormatter(
+                logging.Formatter("%(levelname)s: %(message)s")
+            )
+            self.ch.setLevel(logging.WARNING)
+            logger.addHandler(self.ch)
+            pydicom_logger.addHandler(self.ch)
+        # Otherwise if frozen, send stdout/stderror to /dev/null since
+        # logging the messages seems to cause instability due to recursion
+        else:
+            devnull = open(os.devnull, "w")
+            sys.stdout = devnull
+            sys.stderr = devnull
+        #######################################################################
+        # End logging code block from dicompyler
+        #######################################################################
 
         # Prevent resize event triggers during app launch
         self.allow_window_size_save = False
@@ -65,6 +131,26 @@ class MainFrame(wx.Frame):
 
         self.options.apply_window_position(self, "main")
         self.allow_window_size_save = True
+
+    # from dicompyler for logginer
+    def InstallThreadExcepthook(self):
+        """Workaround for sys.excepthook thread bug from Jonathan Ellis
+        (http://bugs.python.org/issue1230540).
+        Call once from __main__ before creating any threads.
+        If using psyco, call psyco.cannotcompile(threading.Thread.run)
+        since this replaces a new-style class method."""
+
+        run_old = threading.Thread.run
+
+        def Run(*args, **kwargs):
+            try:
+                run_old(*args, **kwargs)
+            except (KeyboardInterrupt, SystemExit):
+                raise
+            except Exception:
+                sys.excepthook(*sys.exc_info())
+
+        threading.Thread.run = Run
 
     def __set_properties(self):
         self.SetTitle("IQDM Analytics")

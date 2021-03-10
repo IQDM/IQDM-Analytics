@@ -12,10 +12,10 @@
 import wx
 import wx.html2 as webview
 from os import environ
-from sys import prefix
+import sys
 from iqdma.paths import WIN_APP_ICON
 
-if environ.get("READTHEDOCS") == "True" or "sphinx" in prefix:
+if environ.get("READTHEDOCS") == "True" or "sphinx" in sys.prefix:
     ERR_DLG_FLAGS = None
     MSG_DLG_FLAGS = None
 else:
@@ -271,3 +271,8 @@ class MessageDialog:
         """ """
         if self.action_no_func is not None:
             self.action_no_func()
+
+
+def main_is_frozen():
+    # https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
+    return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")

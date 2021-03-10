@@ -254,10 +254,15 @@ class Plot:
         self.load_obj_attrs(attr_dicts)
 
     def export_svg(self, file_name):
-        for fig in self.figures:
+        for f, fig in enumerate(self.figures):
             if self.figure_has_data(fig):
                 fig.output_backend = "svg"
-                export_svgs(fig, filename=file_name, timeout=10)
+                if len(self.figures) > 1:
+                    f_split = splitext(file_name)
+                    f_name = f"{f_split[0]}_{f+1}{f_split[1]}"
+                else:
+                    f_name = file_name
+                export_svgs(fig, filename=f_name, timeout=10)
                 fig.output_backend = "canvas"
 
     @staticmethod
