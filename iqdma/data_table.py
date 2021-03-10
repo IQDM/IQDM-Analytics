@@ -16,7 +16,7 @@ from iqdma.utilities import get_selected_listctrl_items, get_sorted_indices
 
 
 class DataTable:
-    """Helper class for wx.ListCtrl"""
+    """Helper class for ``wx.ListCtrl``"""
 
     def __init__(
         self,
@@ -203,6 +203,8 @@ class DataTable:
     def append_row_to_data(self, row: list):
         """Add a row of data to self.data
 
+        Parameters
+        ----------
         row : list
             data ordered by self.columns
 
@@ -289,8 +291,7 @@ class DataTable:
         Parameters
         ----------
         auto : bool
-            Use ``wx.LIST_AUTOSIZE_USEHEADER`` rather than that stored in
-            ``columns``
+            Use ``wx.LIST_AUTOSIZE_USEHEADER`` rather than ``widths``
         """
         if auto:
             for i in range(len(self.columns)):
@@ -345,7 +346,7 @@ class DataTable:
 
     @property
     def selected_row_data(self) -> list:
-        """Row data from the current selection in wx.ListCtrl
+        """Row data from the current selection in ``wx.ListCtrl``
 
         Returns
         -------
@@ -360,7 +361,7 @@ class DataTable:
 
     @property
     def selected_row_index(self) -> list:
-        """Get the indices of selected rows in wx.ListCtrl
+        """Get the indices of selected rows in ``wx.ListCtrl``
 
         Returns
         -------
@@ -376,7 +377,7 @@ class DataTable:
         Returns
         -------
         bool
-            ``row_count`` > 0
+            True if ``row_count`` > 0
         """
         return bool(self.row_count)
 

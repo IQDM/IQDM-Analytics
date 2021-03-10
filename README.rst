@@ -10,7 +10,6 @@ IQDM Analytics is a desktop application for `IQDM-PDF <https://github.com/IQDM/I
 
 Executables
 -----------
-
 Single-file executables are available. See attachments in the `latest release <https://github.com/IQDM/IQDM-Analytics/releases/latest>`__.
 
 
@@ -20,6 +19,7 @@ This library is part of the IMRT QA Data Mining (IQDM) project for
 the AAPM `IMRT Working Group (WGIMRT) <https://www.aapm.org/org/structure/?committee_code=WGIMRT>`__.
 
 -  Free software: `MIT license <https://github.com/IQDM/IQDM-Analytics/blob/master/LICENSE>`__
+-  Documentation: `Read the docs <https://iqdma.readthedocs.io>`__
 
 |screenshot|
 
@@ -37,7 +37,6 @@ Dependencies
 
 Install and Run
 ---------------
-
 If you prefer to run from source:
 
 .. code-block:: console
@@ -52,11 +51,11 @@ Note you *may* have to use pythonw instead of python, depending on your version.
 
 TODO
 ----
-
 - `MS Edge support <https://github.com/IQDM/IQDM-Analytics/issues/1>`__
 - Ability to cancel PDF-Miner thread
-- Documentation
-- Docstrings
+- User manual (usage.rst)
+- Unit testing (non-GUI stuff)
+- Setup continuous integration
 
 
 Credits
@@ -65,13 +64,11 @@ Credits
 ----------------
 Development Lead
 ----------------
-
 * Dan Cutright, University of Chicago Medicine
 
 ------------
 Contributors
 ------------
-
 * Marc Chamberland, University of Vermont Health Network
 * Serpil Kucuker Dogan, Northwestern Medicine
 * Mahesh Gopalakrishnan, Northwestern Medicine

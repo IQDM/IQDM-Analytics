@@ -23,16 +23,9 @@ Stats
     :undoc-members:
     :show-inheritance:
 
-Generic Utilities
------------------
 
-.. automodule:: iqdma.utilities
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-Generic Utilities from DVHA Stats
----------------------------------
+Utilities ported from DVHA Stats
+--------------------------------
 
 .. automodule:: iqdma.utilities_dvha_stats
     :members:

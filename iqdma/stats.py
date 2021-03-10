@@ -37,14 +37,16 @@ class IQDMStats:
         self.data, self.var_names = import_data(data["data"])
         self.x_axis = data["x_axis"]
 
-    def print_data_index_by_criteria(self):
-        for i, var_name in enumerate(self.var_names):
-            print(f"index: {i}")
-            for j, criteria in enumerate(var_name.split(" && ")):
-                print(f"\t{self.criteria_columns[j]}: {criteria}")
-            print("\n")
+    def get_index_description(self) -> tuple:
+        """Get a dict of data and columns for :class:`.DataTable`
 
-    def get_index_description(self):
+        Returns
+        -------
+        dict
+            Keys are column names with values being a list of values
+        list
+            Column names in order to be displayed
+        """
         table = {key: [] for key in self.criteria_columns}
         table["Index"] = list(range(len(self.var_names)))
         table["Reports"] = []
@@ -203,7 +205,14 @@ class ControlChart:
         return str(self)
 
     @property
-    def x_ranged(self):
+    def x_ranged(self) -> list:
+        """Return ``x`` within ``range``
+
+        Returns
+        -------
+        list
+            ``x`` data from ``range[0]`` to ``range[1]``
+        """
         return (
             self.x
             if self.range is None
@@ -212,6 +221,13 @@ class ControlChart:
 
     @property
     def y_ranged(self):
+        """Return ``y`` within ``range``
+
+        Returns
+        -------
+        list
+            ``y`` data  from ``range[0]`` to ``range[1]``
+        """
         return (
             self.y
             if self.range is None
