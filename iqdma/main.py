@@ -252,7 +252,7 @@ class MainFrame(wx.Frame):
         self.button["refresh"].Disable()
 
         self.check_box = {
-            "hippa": wx.CheckBox(self.panel, wx.ID_ANY, "HIPPA Mode")
+            "hipaa": wx.CheckBox(self.panel, wx.ID_ANY, "HIPAA Mode")
         }
         self.combo_box = {
             "y": wx.ComboBox(
@@ -349,7 +349,7 @@ class MainFrame(wx.Frame):
         self.Bind(
             wx.EVT_CHECKBOX,
             self.update_report_data,
-            id=self.check_box["hippa"].GetId(),
+            id=self.check_box["hipaa"].GetId(),
         )
         self.Bind(
             wx.EVT_SPINCTRL,
@@ -380,7 +380,7 @@ class MainFrame(wx.Frame):
         #           id=self.spin_ctrl['bins'].GetId())
 
     def __set_tooltips(self):
-        self.check_box["hippa"].SetToolTip(
+        self.check_box["hipaa"].SetToolTip(
             "Hide date and ID from chart hover tooltips."
         )
 
@@ -399,7 +399,7 @@ class MainFrame(wx.Frame):
             self.list_ctrl_table, 0, wx.EXPAND | wx.ALL, 5
         )
 
-        self.sizer["y"].Add(self.check_box["hippa"], 1, wx.EXPAND | wx.LEFT, 5)
+        self.sizer["y"].Add(self.check_box["hipaa"], 1, wx.EXPAND | wx.LEFT, 5)
         label_start = wx.StaticText(self.panel, wx.ID_ANY, "Start:")
         self.sizer["y"].Add(label_start, 0, wx.EXPAND | wx.RIGHT, 5)
         self.sizer["y"].Add(
@@ -662,7 +662,7 @@ class MainFrame(wx.Frame):
         lcl, ucl = ucc.control_limits
         lcl = ucc.center_line if isnan(lcl) else lcl
         ucl = ucc.center_line if isnan(ucl) else ucl
-        if self.check_box["hippa"].GetValue():
+        if self.check_box["hipaa"].GetValue():
             dates = data_id = ["Redacted"] * len(self.report_data.uid_data)
         else:
             data_id = [

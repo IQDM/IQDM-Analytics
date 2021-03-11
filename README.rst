@@ -100,4 +100,4 @@ Contributors
 
 .. |screenshot| raw:: html
 
-    <img src='https://user-images.githubusercontent.com/4778878/110705765-76173800-81bc-11eb-8c36-af5b523b83ba.jpg' align='center' width='500' alt="IQDM Analytics screenshot">
+    <img src='https://user-images.githubusercontent.com/4778878/110721238-b59e4e00-81d5-11eb-8a1e-5aae9266235a.jpg' align='center' width='500' alt="IQDM Analytics screenshot">
