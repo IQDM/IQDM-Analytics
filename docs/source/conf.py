@@ -73,6 +73,8 @@ html_static_path = ["_static"]
 
 html_short_title = 'IQDMA Docs'
 
+html_logo = '_static/logo.png'
+
 latex_elements = {"extraclassoptions": "openany,oneside"}
 
 autoclass_content = "both"

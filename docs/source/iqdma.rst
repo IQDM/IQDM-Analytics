@@ -24,7 +24,7 @@ Stats
     :show-inheritance:
 
 
-Utilities ported from DVHA Stats
+Utilities ported from DVHA-Stats
 --------------------------------
 
 .. automodule:: iqdma.utilities_dvha_stats

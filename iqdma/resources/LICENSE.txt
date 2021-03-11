@@ -30,7 +30,9 @@ SOFTWARE.
 
 ARTWORK
 
-All icons are free-for-use icons found on iconfinder.com.
+IQDM-Analytics icon designed by Dan Cutright.
+
+All other icons are free-for-use icons found on iconfinder.com.
 
 The following were last accessed on June 16, 2019:
     Close_1493281.png
