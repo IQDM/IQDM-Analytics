@@ -5,7 +5,9 @@ IQDM-Analytics
 
 What does it do?
 ----------------
-IQDM Analytics is a desktop application for `IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ and statistical analysis of its results.
+IQDM Analytics is a desktop application that mines IMRT QA reports with
+`IQDM-PDF <https://github.com/IQDM/IQDM-PDF>`__ and performs statistical
+analysis.
 
 
 Executables

@@ -11,7 +11,8 @@
 
 import numpy as np
 from os.path import isfile, splitext
-from dateutil.parser import parse as date_parser
+# from dateutil.parser import parse as date_parser
+from dateparser import parse as date_parser
 import csv
 
 
