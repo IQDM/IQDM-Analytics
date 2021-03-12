@@ -268,8 +268,12 @@ def widen_data(
                     if multi_val_policy in {"first", "last"}:
                         if date_col_file_creation:
                             param_timestamps = timestamps[uid][date][x]
-                            method = {"first": 'argmin', 'last': 'argmax'}[multi_val_policy]
-                            value = values[getattr(np, method)(param_timestamps)]
+                            method = {"first": "argmin", "last": "argmax"}[
+                                multi_val_policy
+                            ]
+                            value = values[
+                                getattr(np, method)(param_timestamps)
+                            ]
                         elif multi_val_policy == "last":
                             value = values[-1]
                     elif multi_val_policy in {"min", "max"}:

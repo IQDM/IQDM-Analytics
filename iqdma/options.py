@@ -158,7 +158,7 @@ class Options(DefaultOptions):
         :param value: value of option
         """
         if not hasattr(self, attr):
-            msg = ("Options.set_option: %s did not previously exist" % attr)
+            msg = "Options.set_option: %s did not previously exist" % attr
             push_to_log(msg)
 
         setattr(self, attr, value)

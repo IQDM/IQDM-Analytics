@@ -601,7 +601,7 @@ class MainFrame(wx.Frame):
         self.report_data = IQDMStats(
             self.text_ctrl["file"].GetValue(),
             self.charting_variable,
-            self.options.DUPLICATE_VALUE_POLICY
+            self.options.DUPLICATE_VALUE_POLICY,
         )
         table, columns = self.report_data.get_index_description()
         self.data_table.set_data(table, columns)

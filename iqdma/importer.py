@@ -129,7 +129,9 @@ class ReportImporter:
         except ValueError:
             return float("nan")
 
-    def __call__(self, charting_column: str, multi_val_policy: str = "first") -> dict:
+    def __call__(
+        self, charting_column: str, multi_val_policy: str = "first"
+    ) -> dict:
         """Call ``widen`` data with ``data_dict`` and ``charting_column``
 
         Parameters

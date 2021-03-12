@@ -17,7 +17,12 @@ from iqdma.utilities_dvha_stats import import_data
 class IQDMStats:
     """Modified DVHAStats class for IQDM-PDF output"""
 
-    def __init__(self, report_file_path: str, charting_column: str, multi_val_policy: str = 'first'):
+    def __init__(
+        self,
+        report_file_path: str,
+        charting_column: str,
+        multi_val_policy: str = "first",
+    ):
         """Initialize ``IQDMStats``
 
         Parameters
