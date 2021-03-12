@@ -277,7 +277,7 @@ class Plot:
         export_png(self.bokeh_layout, filename=file_name, timeout=10)
 
     def export_html(self, file_name):
-        with open(file_name, "w") as doc:
+        with open(file_name, "w", encoding="utf-8") as doc:
             doc.write(get_layout_html(self.bokeh_layout))
 
     @staticmethod

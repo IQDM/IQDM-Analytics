@@ -21,8 +21,9 @@ from iqdma.utilities import set_icon
 class ProgressFrame(wx.Dialog):
     """Create a window to display progress and begin provided worker"""
 
-    def __init__(self, options):
+    def __init__(self, parent, options):
         wx.Dialog.__init__(self, None)
+        self.parent = parent
         set_icon(self)
 
         self.text_ctrl = {
@@ -83,6 +84,7 @@ class ProgressFrame(wx.Dialog):
         self.SetTitle("IQDM-PDF")
 
     def __do_bind(self):
+        self.Bind(wx.EVT_CLOSE, self.close)
         self.Bind(
             wx.EVT_BUTTON, self.on_browse_scan, id=self.button["scan"].GetId()
         )
@@ -199,8 +201,9 @@ class ProgressFrame(wx.Dialog):
         wx.CallAfter(self.gauge.SetValue, int(100 * msg["gauge"]))
         wx.CallAfter(self.Layout)
 
-    def close(self):
+    def close(self, *evt):
         pub.unsubAll(topicName="progress_update")
+        self.parent.pdf_miner_window = None
         wx.CallAfter(self.Destroy)
 
 

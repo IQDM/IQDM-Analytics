@@ -154,7 +154,7 @@ class MainFrame(wx.Frame):
         threading.Thread.run = Run
 
     def __set_properties(self):
-        self.SetTitle("IQDM Analytics")
+        self.SetTitle("IQDM Analytics (v0.1.6dev2)")
         self.frame_toolbar.Realize()
 
     def __add_tool_bar(self):
@@ -526,7 +526,7 @@ class MainFrame(wx.Frame):
 
     def on_pdf_miner(self, *evt):
         if self.pdf_miner_window is None:
-            self.pdf_miner_window = ProgressFrame(self.options)
+            self.pdf_miner_window = ProgressFrame(self, self.options)
         else:
             self.pdf_miner_window.Raise()
 
