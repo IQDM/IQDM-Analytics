@@ -218,6 +218,7 @@ class MainFrame(wx.Frame):
 
         help_menu = wx.Menu()
         menu_github = help_menu.Append(wx.ID_ANY, "GitHub Page")
+        menu_rtd = help_menu.Append(wx.ID_ANY, "Documentation")
         menu_report_issue = help_menu.Append(wx.ID_ANY, "Report an Issue")
         menu_about = help_menu.Append(wx.ID_ANY, "&About")
 
@@ -236,6 +237,7 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.on_reset_windows, menu_win_pos)
         self.Bind(wx.EVT_MENU, self.on_githubpage, menu_github)
+        self.Bind(wx.EVT_MENU, self.on_readthedocs, menu_rtd)
         self.Bind(wx.EVT_MENU, self.on_report_issue, menu_report_issue)
         self.Bind(wx.EVT_MENU, About, menu_about)
 
@@ -535,6 +537,10 @@ class MainFrame(wx.Frame):
         webbrowser.open_new_tab("https://github.com/IQDM/IQDM-Analytics")
 
     @staticmethod
+    def on_readthedocs(*evt):
+        webbrowser.open_new_tab("http://iqdma.readthedocs.io")
+
+    @staticmethod
     def on_report_issue(*evt):
         webbrowser.open_new_tab(
             "https://github.com/IQDM/IQDM-Analytics/issues"
@@ -582,7 +588,8 @@ class MainFrame(wx.Frame):
             self.combo_box["y"].Append(options)
             self.combo_box["y"].SetValue(options[0])
             self.range_update_needed = True
-            with wx.BusyInfo("IQDM Analytics\nPlease wait, updating data..."):
+            msg = "IQDM Analytics\nPlease wait, updating data..."
+            with wx.BusyInfo(msg, parent=self):
                 self.update_report_data()
         except Exception as e:
             msg = f"Failed to load: {self.text_ctrl['file'].GetValue()}"

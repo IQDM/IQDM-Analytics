@@ -104,7 +104,7 @@ class DefaultOptions:
         self.CONTROL_LIMIT_STD_DEV = 3
 
         self.DUPLICATE_VALUE_POLICY = "last"
-        self.DUPLICATE_VALUE_OPTIONS = ["first", "last", "max", "min"]
+        self.DUPLICATE_VALUE_OPTIONS = ["first", "last", "max", "mean", "min"]
 
 
 class Options(DefaultOptions):

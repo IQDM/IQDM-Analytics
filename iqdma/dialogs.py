@@ -22,8 +22,8 @@ import wx.html2 as webview
 
 
 class About(wx.Dialog):
-    """
-    Simple dialog to display the LICENSE file and a brief text header in a scrollable window
+    """Simple dialog to display the LICENSE file and a brief text header in a
+    scrollable window
     """
 
     def __init__(self, *evt):
@@ -181,7 +181,7 @@ class UserSettings(wx.Frame):
         self.combo_box_duplicates = wx.ComboBox(
             self,
             wx.ID_ANY,
-            choices=self.options.DUPLICATE_VALUE_OPTIONS,
+            choices=DefaultOptions().DUPLICATE_VALUE_OPTIONS,
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
         )
 

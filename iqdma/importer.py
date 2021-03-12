@@ -10,7 +10,8 @@
 #    available at https://github.com/IQDM/IQDM-Analytics
 
 from os.path import basename
-from iqdma.utilities_dvha_stats import widen_data, csv_to_dict
+from iqdma.utilities import widen_data
+from iqdma.utilities_dvha_stats import csv_to_dict
 from IQDMPDF.parsers.sncpatient import SNCPatientReport2020, SNCPatientCustom
 from IQDMPDF.parsers.delta4 import Delta4Report
 from IQDMPDF.parsers.verisoft import VeriSoftReport
