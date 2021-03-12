@@ -14,6 +14,7 @@ import wx.html2 as webview
 from os import environ
 import sys
 from iqdma.paths import WIN_APP_ICON
+import logging
 
 if environ.get("READTHEDOCS") == "True" or "sphinx" in sys.prefix:
     ERR_DLG_FLAGS = None
@@ -21,6 +22,19 @@ if environ.get("READTHEDOCS") == "True" or "sphinx" in sys.prefix:
 else:
     ERR_DLG_FLAGS = wx.ICON_ERROR | wx.OK | wx.OK_DEFAULT | wx.CENTER
     MSG_DLG_FLAGS = wx.ICON_WARNING | wx.YES | wx.NO | wx.NO_DEFAULT
+
+LOGGER = logging.getLogger("iqdma")
+
+
+def push_to_log(exception=None, msg=None, msg_type="warning"):
+    if exception is None:
+        text = str(msg)
+    else:
+        text = (
+            "%s\n%s" % (msg, exception) if msg is not None else str(exception)
+        )
+    func = getattr(LOGGER, msg_type)
+    func(text)
 
 
 def is_windows():

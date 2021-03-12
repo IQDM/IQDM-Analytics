@@ -156,6 +156,7 @@ class ReportImporter:
             "y_data_col": charting_column,
             "date_col": self.columns[self.analysis_columns["date"]],
             "dtype": dtype,
+            "date_col_backup": "report_file_creation",
         }
         data = widen_data(self.data_dict, **kwargs)
         x_axis = data.pop("date")
