@@ -12,6 +12,7 @@
 import numpy as np
 from os.path import isfile, splitext
 from dateutil.parser import parse as date_parser
+from datetime import datetime
 import csv
 
 
@@ -140,6 +141,7 @@ def widen_data(
     x_data_cols,
     y_data_col,
     date_col=None,
+    date_col_backup=None,
     sort_by_date=True,
     remove_partial_columns=False,
     multi_val_policy="first",
@@ -162,6 +164,8 @@ def widen_data(
         Key of data_dict representing dependent data
     date_col : int, str, optional
         Key of date column
+    date_col_backup : int, str, optional
+        key of a backup date column if date_col fails, for sorting only
     sort_by_date : bool, optional
         Sort output by date (date_col required)
     remove_partial_columns : bool, optional
@@ -222,12 +226,15 @@ def widen_data(
     x_variables = sorted(list(set(x_variables)))
 
     keys = ["uid", "date"] + x_variables
+    if date_col_backup and date_col_backup not in keys:
+        keys.append(date_col_backup)
     wide_data = {key: [] for key in keys}
     partial_cols = []
     for uid, date_data in data.items():
         for date, param_data in date_data.items():
             wide_data["uid"].append(uid)
             wide_data["date"].append(date)
+
             for x in x_variables:
                 values = param_data.get(x)
                 if values is None:
@@ -267,14 +274,20 @@ def widen_data(
         wide_data.pop("date")
     elif sort_by_date:
         kwargs = {} if date_parser_kwargs is None else date_parser_kwargs
-        dates = str_arr_to_date_arr(wide_data["date"], kwargs)
+        dates = [get_datetime(date, kwargs) for date in wide_data["date"]]
+        for d, date_backup in enumerate(wide_data[date_col_backup]):
+            if isinstance(dates[d], str):
+                dates[d] = get_datetime(date_backup)
         sorted_indices = get_sorted_indices(dates)
         final_data = {key: [] for key in wide_data.keys()}
         for row in range(len(wide_data[x_variables[0]])):
             final_data["uid"].append(wide_data["uid"][sorted_indices[row]])
             final_data["date"].append(wide_data["date"][sorted_indices[row]])
             for x in x_variables:
-                final_data[x].append(wide_data[x][sorted_indices[row]])
+                if x != date_col_backup:
+                    final_data[x].append(wide_data[x][sorted_indices[row]])
+        if date_col_backup in final_data.keys():
+            final_data.pop(date_col_backup)
         return final_data
 
     return wide_data
@@ -327,36 +340,24 @@ def sort_2d_array(arr, index, mode="col"):
     return arr
 
 
-def str_arr_to_date_arr(arr, date_parser_kwargs=None, force=False):
-    """Convert an array of datetime strings to a list of datetime objects
+def get_datetime(date, date_parser_kwargs=None):
+    """Convert ``date`` to datetime
 
     Parameters
     ----------
-    arr : array-like
-        Array of datetime strings compatible with dateutil.parser.parse
+    date : float, str
+        Either a date time stamp (float) or a parse-able date string
     date_parser_kwargs : dict, optional
         Keyword arguments to be passed into dateutil.parser.parse
-    force : bool
-        If true, failed parsings will result in original value. If false,
-        dateutil.parser.parse's error will be raised on failures.
 
-    Returns
-    ----------
-    list
-        list of datetime objects
     """
-    kwargs = {} if date_parser_kwargs is None else date_parser_kwargs
-    dates = []
-    for date_str in arr:
-        try:
-            date = date_parser(date_str, **kwargs)
-        except Exception as e:
-            if force:
-                date = date_str
-            else:
-                raise e
-        dates.append(date)
-    return dates
+    try:
+        return datetime.fromtimestamp(float(date))
+    except ValueError:
+        kwargs = {} if date_parser_kwargs is None else date_parser_kwargs
+        return date_parser(date, **kwargs)
+    except Exception:
+        return date
 
 
 def is_numeric(val):

@@ -153,7 +153,7 @@ class MainFrame(wx.Frame):
         threading.Thread.run = Run
 
     def __set_properties(self):
-        self.SetTitle("IQDM Analytics (dateparser dev1)")
+        self.SetTitle("IQDM Analytics")
         self.frame_toolbar.Realize()
 
     def __add_tool_bar(self):
@@ -266,7 +266,7 @@ class MainFrame(wx.Frame):
                 "10",
                 min=2,
                 max=100,
-                style=wx.SP_ARROW_KEYS,
+                style=wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER,
             ),
             "start": wx.SpinCtrl(
                 self.panel,
@@ -282,7 +282,7 @@ class MainFrame(wx.Frame):
                 "1",
                 min=1,
                 max=100,
-                style=wx.SP_ARROW_KEYS,
+                style=wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER,
             ),
         }
         if is_mac():
@@ -374,6 +374,11 @@ class MainFrame(wx.Frame):
         self.Bind(
             wx.EVT_SPINCTRL,
             self.update_report_data_from_hist,
+            id=self.spin_ctrl["bins"].GetId(),
+        )
+        self.Bind(
+            wx.EVT_TEXT_ENTER,
+            self.on_range_spin,
             id=self.spin_ctrl["bins"].GetId(),
         )
         # self.Bind(wx.EVT_SPIN, self.update_report_data_from_hist,
@@ -710,7 +715,7 @@ class MainApp(wx.App):
             set_ie_emulation_level()
             set_ie_lockdown_level()
         initialize_directories()
-        self.SetAppName("IQDM Analytics (dateparser dev1)")
+        self.SetAppName("IQDM Analytics")
         self.frame = MainFrame(None, wx.ID_ANY, "")
         set_icon(self.frame, icon=WIN_APP_ICON)
         self.SetTopWindow(self.frame)
