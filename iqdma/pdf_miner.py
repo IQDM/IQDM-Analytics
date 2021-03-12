@@ -74,6 +74,8 @@ class ProgressFrame(wx.Dialog):
             self.text_ctrl[key].Disable()
             self.button[key].Disable()
 
+        self.label_progress.SetLabelText("Reading directory tree...")
+        self.Layout()
         ProgressFrameWorker(self.iqdm_pdf_kwargs)
 
     def callback(self, msg):

@@ -574,11 +574,6 @@ class MainFrame(wx.Frame):
     # Data Processing and Visualization
     ################################################################
     def import_csv(self):
-        # if not self.is_plot_initialized:
-        #     self.plot.init_layout()
-        #     self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
-        #     self.panel.Layout()
-        #     self.is_plot_initialized = True
         self.plot.clear_plot()
         try:
             self.importer = ReportImporter(self.text_ctrl["file"].GetValue())
@@ -587,7 +582,8 @@ class MainFrame(wx.Frame):
             self.combo_box["y"].Append(options)
             self.combo_box["y"].SetValue(options[0])
             self.range_update_needed = True
-            self.update_report_data()
+            with wx.BusyInfo("IQDM Analytics\nPlease wait, updating data..."):
+                self.update_report_data()
         except Exception as e:
             msg = f"Failed to load: {self.text_ctrl['file'].GetValue()}"
             push_to_log(e, msg=msg)
