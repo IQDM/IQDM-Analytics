@@ -15,7 +15,7 @@ from iqdma.utilities import (
     MessageDialog,
     is_windows,
     set_msw_background_color,
-    set_frame_icon,
+    set_icon,
 )
 import wx
 import wx.html2 as webview
@@ -28,6 +28,7 @@ class About(wx.Dialog):
 
     def __init__(self, *evt):
         wx.Dialog.__init__(self, None, title="About IQDM Analytics")
+        set_icon(self)
 
         scrolled_window = wx.ScrolledWindow(self, wx.ID_ANY)
 
@@ -200,7 +201,7 @@ class UserSettings(wx.Frame):
         self.is_edited = False
 
         set_msw_background_color(self)
-        set_frame_icon(self)
+        set_icon(self)
 
     def __set_properties(self):
         self.combo_box_colors_category.SetMinSize(

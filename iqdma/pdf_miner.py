@@ -15,6 +15,7 @@ from IQDMPDF.file_processor import process_files
 from threading import Thread
 from pubsub import pub
 from os.path import isdir
+from iqdma.utilities import set_icon
 
 
 class ProgressFrame(wx.Dialog):
@@ -22,6 +23,7 @@ class ProgressFrame(wx.Dialog):
 
     def __init__(self, options):
         wx.Dialog.__init__(self, None)
+        set_icon(self)
 
         self.text_ctrl = {
             "scan": wx.TextCtrl(self, wx.ID_ANY, ""),

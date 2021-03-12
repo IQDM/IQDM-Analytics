@@ -154,7 +154,7 @@ class ReportImporter:
             "uid_columns": self.uid_col,
             "x_data_cols": self.criteria_col,
             "y_data_col": charting_column,
-            "date_col": self.columns[self.analysis_columns["date"]],
+            "date_col": "report_file_creation",
             "dtype": dtype,
             "date_col_backup": "report_file_creation",
         }

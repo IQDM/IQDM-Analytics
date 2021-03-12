@@ -24,7 +24,7 @@ from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
 from iqdma.options import Options, DefaultOptions
 from iqdma.dialogs import UserSettings, About
-from iqdma.paths import ICONS, APP_DIR, initialize_directories
+from iqdma.paths import ICONS, APP_DIR, initialize_directories, WIN_APP_ICON
 from iqdma.data_table import DataTable
 from iqdma.importer import ReportImporter
 from iqdma.exporter import ExportFigure
@@ -34,7 +34,7 @@ from iqdma.utilities import (
     is_mac,
     is_linux,
     scale_bitmap,
-    set_frame_icon,
+    set_icon,
     ErrorDialog,
     main_is_frozen,
 )
@@ -153,7 +153,7 @@ class MainFrame(wx.Frame):
         threading.Thread.run = Run
 
     def __set_properties(self):
-        self.SetTitle("IQDM Analytics")
+        self.SetTitle("IQDM Analytics (dateparser dev1)")
         self.frame_toolbar.Realize()
 
     def __add_tool_bar(self):
@@ -710,9 +710,9 @@ class MainApp(wx.App):
             set_ie_emulation_level()
             set_ie_lockdown_level()
         initialize_directories()
-        self.SetAppName("IQDM Analytics")
+        self.SetAppName("IQDM Analytics (dateparser dev1)")
         self.frame = MainFrame(None, wx.ID_ANY, "")
-        set_frame_icon(self.frame)
+        set_icon(self.frame, icon=WIN_APP_ICON)
         self.SetTopWindow(self.frame)
         self.frame.Show()
         return True

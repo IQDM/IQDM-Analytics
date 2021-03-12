@@ -13,8 +13,7 @@ import wx
 import wx.html2 as webview
 from os import environ
 import sys
-from iqdma.paths import WIN_APP_ICON
-import logging
+from iqdma.paths import WIN_FRAME_ICON
 
 if environ.get("READTHEDOCS") == "True" or "sphinx" in sys.prefix:
     ERR_DLG_FLAGS = None
@@ -22,19 +21,6 @@ if environ.get("READTHEDOCS") == "True" or "sphinx" in sys.prefix:
 else:
     ERR_DLG_FLAGS = wx.ICON_ERROR | wx.OK | wx.OK_DEFAULT | wx.CENTER
     MSG_DLG_FLAGS = wx.ICON_WARNING | wx.YES | wx.NO | wx.NO_DEFAULT
-
-LOGGER = logging.getLogger("iqdma")
-
-
-def push_to_log(exception=None, msg=None, msg_type="warning"):
-    if exception is None:
-        text = str(msg)
-    else:
-        text = (
-            "%s\n%s" % (msg, exception) if msg is not None else str(exception)
-        )
-    func = getattr(LOGGER, msg_type)
-    func(text)
 
 
 def is_windows():
@@ -179,7 +165,7 @@ def scale_bitmap(bitmap, width, height):
     return wx.Bitmap(image)
 
 
-def set_frame_icon(frame):
+def set_icon(frame, icon=WIN_FRAME_ICON):
     """
 
     Parameters
@@ -192,7 +178,7 @@ def set_frame_icon(frame):
 
     """
     if not is_mac():
-        frame.SetIcon(wx.Icon(WIN_APP_ICON))
+        frame.SetIcon(wx.Icon(icon))
 
 
 def get_selected_listctrl_items(list_control) -> list:
