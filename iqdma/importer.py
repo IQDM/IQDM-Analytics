@@ -129,7 +129,7 @@ class ReportImporter:
         except ValueError:
             return float("nan")
 
-    def __call__(self, charting_column: str) -> dict:
+    def __call__(self, charting_column: str, multi_val_policy: str = "first") -> dict:
         """Call ``widen`` data with ``data_dict`` and ``charting_column``
 
         Parameters
@@ -154,9 +154,10 @@ class ReportImporter:
             "uid_columns": self.uid_col,
             "x_data_cols": self.criteria_col,
             "y_data_col": charting_column,
-            "date_col": "report_file_creation",
+            "date_col": self.columns[self.analysis_columns["date"]],
             "dtype": dtype,
-            "date_col_backup": "report_file_creation",
+            "date_col_file_creation": "report_file_creation",
+            "multi_val_policy": multi_val_policy,
         }
         data = widen_data(self.data_dict, **kwargs)
         x_axis = data.pop("date")

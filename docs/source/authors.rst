@@ -16,3 +16,4 @@ Contributors
 * Serpil Kucuker Dogan, Northwestern Medicine
 * Mahesh Gopalakrishnan, Northwestern Medicine
 * Aditya Panchal, AMITA Health
+* Michael Snyder, Beaumont Health

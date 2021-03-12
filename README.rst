@@ -58,6 +58,7 @@ TODO
 - User manual (usage.rst)
 - Unit testing (non-GUI stuff)
 - Setup continuous integration
+- Consolidate/Clean-up UserSettings Dialog code
 
 
 Credits
@@ -75,6 +76,7 @@ Contributors
 * Serpil Kucuker Dogan, Northwestern Medicine
 * Mahesh Gopalakrishnan, Northwestern Medicine
 * Aditya Panchal, AMITA Health
+* Michael Snyder, Beaumont Health
 
 
 

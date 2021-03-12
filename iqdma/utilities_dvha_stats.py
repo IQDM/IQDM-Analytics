@@ -141,7 +141,7 @@ def widen_data(
     x_data_cols,
     y_data_col,
     date_col=None,
-    date_col_backup=None,
+    date_col_file_creation=None,
     sort_by_date=True,
     remove_partial_columns=False,
     multi_val_policy="first",
@@ -164,7 +164,7 @@ def widen_data(
         Key of data_dict representing dependent data
     date_col : int, str, optional
         Key of date column
-    date_col_backup : int, str, optional
+    date_col_file_creation : int, str, optional
         key of a backup date column if date_col fails, for sorting only
     sort_by_date : bool, optional
         Sort output by date (date_col required)
@@ -198,11 +198,13 @@ def widen_data(
         raise NotImplementedError(msg)
 
     data = {}
+    timestamps = {}
     for row in range(len(data_dict[y_data_col])):
         uid = " && ".join([str(data_dict[col][row]) for col in uid_columns])
 
         if uid not in list(data):
             data[uid] = {}
+            timestamps[uid] = {}
 
         vals = [data_dict[col][row] for col in x_data_cols]
         vals = [float(v) if is_numeric(v) else v for v in vals]
@@ -211,11 +213,20 @@ def widen_data(
         date = 0 if date_col is None else data_dict[date_col][row]
         if date not in data[uid].keys():
             data[uid][date] = {}
+            timestamps[uid][date] = {}
 
         if params not in list(data[uid][date]):
             data[uid][date][params] = []
+            timestamps[uid][date][params] = []
 
         data[uid][date][params].append(data_dict[y_data_col][row])
+        if date_col_file_creation:
+            timestamp = data_dict[date_col_file_creation][row]
+            try:
+                timestamp = float(data_dict[date_col_file_creation][row])
+            except ValueError:
+                pass
+            timestamps[uid][date][params].append(timestamp)
 
     x_variables = []
     for results in data.values():
@@ -226,8 +237,8 @@ def widen_data(
     x_variables = sorted(list(set(x_variables)))
 
     keys = ["uid", "date"] + x_variables
-    if date_col_backup and date_col_backup not in keys:
-        keys.append(date_col_backup)
+    if date_col_file_creation and date_col_file_creation not in keys:
+        keys.append(date_col_file_creation)
     wide_data = {key: [] for key in keys}
     partial_cols = []
     for uid, date_data in data.items():
@@ -254,8 +265,13 @@ def widen_data(
                             "included in widen_data output."
                             % (uid, date, x, multi_val_policy)
                         )
-                    if multi_val_policy == "last":
-                        value = values[-1]
+                    if multi_val_policy in {"first", "last"}:
+                        if date_col_file_creation:
+                            param_timestamps = timestamps[uid][date][x]
+                            method = {"first": 'argmin', 'last': 'argmax'}[multi_val_policy]
+                            value = values[getattr(np, method)(param_timestamps)]
+                        elif multi_val_policy == "last":
+                            value = values[-1]
                     elif multi_val_policy in {"min", "max"}:
                         value = {"min": min, "max": max}[multi_val_policy](
                             values
@@ -275,7 +291,7 @@ def widen_data(
     elif sort_by_date:
         kwargs = {} if date_parser_kwargs is None else date_parser_kwargs
         dates = [get_datetime(date, kwargs) for date in wide_data["date"]]
-        for d, date_backup in enumerate(wide_data[date_col_backup]):
+        for d, date_backup in enumerate(wide_data[date_col_file_creation]):
             if isinstance(dates[d], str):
                 dates[d] = get_datetime(date_backup)
         sorted_indices = get_sorted_indices(dates)
@@ -284,10 +300,10 @@ def widen_data(
             final_data["uid"].append(wide_data["uid"][sorted_indices[row]])
             final_data["date"].append(wide_data["date"][sorted_indices[row]])
             for x in x_variables:
-                if x != date_col_backup:
+                if x != date_col_file_creation:
                     final_data[x].append(wide_data[x][sorted_indices[row]])
-        if date_col_backup in final_data.keys():
-            final_data.pop(date_col_backup)
+        if date_col_file_creation in final_data.keys():
+            final_data.pop(date_col_file_creation)
         return final_data
 
     return wide_data

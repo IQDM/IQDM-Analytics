@@ -37,6 +37,7 @@ from iqdma.utilities import (
     set_icon,
     ErrorDialog,
     main_is_frozen,
+    push_to_log,
 )
 
 
@@ -556,6 +557,14 @@ class MainFrame(wx.Frame):
     def on_refresh(self, *evt):
         self.import_csv()
 
+    def reimport(self):
+        selected = self.data_table.selected_row_index
+        self.import_csv()
+        if selected:
+            index = self.data_table.get_value(selected[0], 0)
+            self.update_chart_data(index)
+            self.list_ctrl_table.SetFocus()
+
     def enable_refresh(self, *evt):
         self.button["refresh"].Enable(
             isfile(self.text_ctrl["file"].GetValue())
@@ -571,13 +580,20 @@ class MainFrame(wx.Frame):
         #     self.panel.Layout()
         #     self.is_plot_initialized = True
         self.plot.clear_plot()
-        self.importer = ReportImporter(self.text_ctrl["file"].GetValue())
-        options = self.importer.charting_options
-        self.combo_box["y"].Clear()
-        self.combo_box["y"].Append(options)
-        self.combo_box["y"].SetValue(options[0])
-        self.range_update_needed = True
-        self.update_report_data()
+        try:
+            self.importer = ReportImporter(self.text_ctrl["file"].GetValue())
+            options = self.importer.charting_options
+            self.combo_box["y"].Clear()
+            self.combo_box["y"].Append(options)
+            self.combo_box["y"].SetValue(options[0])
+            self.range_update_needed = True
+            self.update_report_data()
+        except Exception as e:
+            msg = f"Failed to load: {self.text_ctrl['file'].GetValue()}"
+            push_to_log(e, msg=msg)
+
+            caption = "CSV Import Failure!"
+            ErrorDialog(self, msg, caption)
 
     def update_report_data(self, *evt):
 
@@ -587,7 +603,9 @@ class MainFrame(wx.Frame):
             index = self.data_table.get_value(table_index, 0)
 
         self.report_data = IQDMStats(
-            self.text_ctrl["file"].GetValue(), self.charting_variable
+            self.text_ctrl["file"].GetValue(),
+            self.charting_variable,
+            self.options.DUPLICATE_VALUE_POLICY
         )
         table, columns = self.report_data.get_index_description()
         self.data_table.set_data(table, columns)
