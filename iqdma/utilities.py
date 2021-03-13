@@ -496,6 +496,12 @@ def get_datetime(date, date_parser_kwargs=None):
         return datetime.fromtimestamp(float(date))
     except ValueError:
         kwargs = {} if date_parser_kwargs is None else date_parser_kwargs
-        return date_parser(date, **kwargs)
-    except Exception:
-        return date
+        try:
+            return date_parser(date, **kwargs)
+        except Exception as e:
+            msg = f"get_datetime failed on date_parser with {date}"
+            push_to_log(e, msg=msg)
+    except Exception as e:
+        msg = f"get_datetime failed on datetime.fromtimestamp with {date}"
+        push_to_log(e, msg=msg)
+    return date
