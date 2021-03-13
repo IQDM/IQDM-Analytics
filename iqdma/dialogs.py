@@ -15,19 +15,20 @@ from iqdma.utilities import (
     MessageDialog,
     is_windows,
     set_msw_background_color,
-    set_frame_icon,
+    set_icon,
 )
 import wx
 import wx.html2 as webview
 
 
 class About(wx.Dialog):
-    """
-    Simple dialog to display the LICENSE file and a brief text header in a scrollable window
+    """Simple dialog to display the LICENSE file and a brief text header in a
+    scrollable window
     """
 
     def __init__(self, *evt):
         wx.Dialog.__init__(self, None, title="About IQDM Analytics")
+        set_icon(self)
 
         scrolled_window = wx.ScrolledWindow(self, wx.ID_ANY)
 
@@ -74,6 +75,7 @@ class UserSettings(wx.Frame):
         wx.Frame.__init__(self, None, title="User Settings")
 
         self.is_edge_backend_available = None
+        self.reimport_required = False
         try:
             self.is_edge_backend_available = (
                 webview.WebView.IsBackendAvailable(webview.WebViewBackendEdge)
@@ -176,6 +178,12 @@ class UserSettings(wx.Frame):
             choices=["Yes", "No"],
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
         )
+        self.combo_box_duplicates = wx.ComboBox(
+            self,
+            wx.ID_ANY,
+            choices=DefaultOptions().DUPLICATE_VALUE_OPTIONS,
+            style=wx.CB_DROPDOWN | wx.CB_READONLY,
+        )
 
         if is_windows():
             self.checkbox_edge_backend = wx.CheckBox(
@@ -200,7 +208,7 @@ class UserSettings(wx.Frame):
         self.is_edited = False
 
         set_msw_background_color(self)
-        set_frame_icon(self)
+        set_icon(self)
 
     def __set_properties(self):
         self.combo_box_colors_category.SetMinSize(
@@ -233,6 +241,9 @@ class UserSettings(wx.Frame):
         self.combo_box_pdf_ext.SetMinSize(
             (80, self.combo_box_pdf_ext.GetSize()[1])
         )
+        self.combo_box_duplicates.SetMinSize(
+            (80, self.combo_box_duplicates.GetSize()[1])
+        )
 
         self.spin_ctrl_alpha_input.SetIncrement(0.1)
         self.spin_ctrl_cc_std_dev.SetIncrement(0.1)
@@ -261,6 +272,7 @@ class UserSettings(wx.Frame):
         self.combo_box_pdf_ext.SetValue(
             "No" if self.options.PDF_IGNORE_EXT else "Yes"
         )
+        self.combo_box_duplicates.SetValue(self.options.DUPLICATE_VALUE_POLICY)
 
     def __do_layout(self):
         sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
@@ -284,6 +296,7 @@ class UserSettings(wx.Frame):
         sizer_cc_limit = wx.BoxSizer(wx.HORIZONTAL)
         sizer_n_jobs = wx.BoxSizer(wx.HORIZONTAL)
         sizer_pdf_ext = wx.BoxSizer(wx.HORIZONTAL)
+        sizer_duplicate = wx.BoxSizer(wx.HORIZONTAL)
 
         label_colors = wx.StaticText(self, wx.ID_ANY, "Colors:")
         sizer_colors.Add(label_colors, 0, 0, 0)
@@ -347,6 +360,15 @@ class UserSettings(wx.Frame):
         sizer_cc_limit.Add((20, 20), 0, 0, 0)
         sizer_cc_limit.Add(self.spin_ctrl_cc_std_dev, 0, 0, 0)
         sizer_other_options.Add(sizer_cc_limit, 0, wx.EXPAND | wx.BOTTOM, 10)
+
+        label_duplicate = wx.StaticText(
+            self, wx.ID_ANY, "Duplicate Value Policy:"
+        )
+        label_duplicate.SetMinSize((175, 20))
+        sizer_duplicate.Add(label_duplicate, 0, 0, 0)
+        sizer_duplicate.Add((20, 20), 0, 0, 0)
+        sizer_duplicate.Add(self.combo_box_duplicates, 0, 0, 0)
+        sizer_other_options.Add(sizer_duplicate, 0, wx.EXPAND | wx.BOTTOM, 10)
 
         label_n_jobs = wx.StaticText(self, wx.ID_ANY, "Multi-Threading Jobs:")
         label_n_jobs.SetMinSize((175, 20))
@@ -455,6 +477,11 @@ class UserSettings(wx.Frame):
             wx.EVT_COMBOBOX,
             self.update_pdf_ext_val,
             id=self.combo_box_pdf_ext.GetId(),
+        )
+        self.Bind(
+            wx.EVT_COMBOBOX,
+            self.update_duplicate_val,
+            id=self.combo_box_duplicates.GetId(),
         )
 
         self.Bind(
@@ -590,6 +617,14 @@ class UserSettings(wx.Frame):
         new = self.combo_box_pdf_ext.GetValue()
         self.options.set_option("PDF_IGNORE_EXT", new == "No")
 
+    def update_duplicate_var(self, *args):
+        self.combo_box_duplicates.SetValue(self.options.DUPLICATE_VALUE_POLICY)
+
+    def update_duplicate_val(self, *args):
+        self.reimport_required = True
+        new = self.combo_box_duplicates.GetValue()
+        self.options.set_option("DUPLICATE_VALUE_POLICY", new)
+
     def update_line_width_var(self, *args):
         var = self.clean_option_variable(
             self.combo_box_line_widths_category.GetValue(), inverse=True
@@ -666,6 +701,7 @@ class UserSettings(wx.Frame):
         self.update_n_jobs_var()
         self.update_cc_limit_var()
         self.update_pdf_ext_var()
+        self.update_duplicate_var()
 
     def restore_defaults(self, *args):
         MessageDialog(
@@ -693,4 +729,8 @@ class UserSettings(wx.Frame):
 
     def apply_and_redraw_plots(self):
         self.parent.apply_plot_options()
-        self.parent.redraw_plots()
+        if self.reimport_required:
+            self.parent.reimport()
+            self.reimport_required = False
+        else:
+            self.parent.redraw_plots()

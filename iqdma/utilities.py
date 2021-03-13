@@ -11,9 +11,14 @@
 
 import wx
 import wx.html2 as webview
+import numpy as np
 from os import environ
 import sys
-from iqdma.paths import WIN_APP_ICON
+from iqdma.paths import WIN_FRAME_ICON
+from iqdma.utilities_dvha_stats import apply_dtype, is_numeric
+from dateutil.parser import parse as date_parser
+from datetime import datetime
+import logging
 
 if environ.get("READTHEDOCS") == "True" or "sphinx" in sys.prefix:
     ERR_DLG_FLAGS = None
@@ -21,6 +26,20 @@ if environ.get("READTHEDOCS") == "True" or "sphinx" in sys.prefix:
 else:
     ERR_DLG_FLAGS = wx.ICON_ERROR | wx.OK | wx.OK_DEFAULT | wx.CENTER
     MSG_DLG_FLAGS = wx.ICON_WARNING | wx.YES | wx.NO | wx.NO_DEFAULT
+
+
+logger = logging.getLogger("iqdma")
+
+
+def push_to_log(exception=None, msg=None, msg_type="warning"):
+    if exception is None:
+        text = str(msg)
+    else:
+        text = (
+            "%s\n%s" % (msg, exception) if msg is not None else str(exception)
+        )
+    func = getattr(logger, msg_type)
+    func(text)
 
 
 def is_windows():
@@ -165,7 +184,7 @@ def scale_bitmap(bitmap, width, height):
     return wx.Bitmap(image)
 
 
-def set_frame_icon(frame):
+def set_icon(frame, icon=WIN_FRAME_ICON):
     """
 
     Parameters
@@ -178,7 +197,7 @@ def set_frame_icon(frame):
 
     """
     if not is_mac():
-        frame.SetIcon(wx.Icon(WIN_APP_ICON))
+        frame.SetIcon(wx.Icon(icon))
 
 
 def get_selected_listctrl_items(list_control) -> list:
@@ -276,3 +295,213 @@ class MessageDialog:
 def main_is_frozen():
     # https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
     return getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS")
+
+
+def widen_data(
+    data_dict,
+    uid_columns,
+    x_data_cols,
+    y_data_col,
+    date_col=None,
+    date_col_file_creation=None,
+    sort_by_date=True,
+    remove_partial_columns=False,
+    multi_val_policy="first",
+    dtype=None,
+    date_parser_kwargs=None,
+    verbose=False,
+):
+    """Convert a narrow data dictionary into wide format (i.e., from one row
+    per dependent value to one row per observation)
+
+    Parameters
+    ----------
+    data_dict : dict
+        Data to be converted. The length of each array must be uniform.
+    uid_columns : list
+        Keys of data_dict used to create an observation uid
+    x_data_cols : list
+        Keys of columns representing independent data
+    y_data_col : int, str
+        Key of data_dict representing dependent data
+    date_col : int, str, optional
+        Key of date column
+    date_col_file_creation : int, str, optional
+        key of a backup date column if date_col fails, for sorting only
+    sort_by_date : bool, optional
+        Sort output by date (date_col required)
+    remove_partial_columns : bool, optional
+        If true, any columns that have a blank row will be removed
+    multi_val_policy : str
+        Either 'first', 'last', 'min', 'max'. If multiple values are found for
+        a particular combination of x_data_cols, one value will be selected
+        based on this policy.
+    dtype : function
+        python reserved types, e.g., int, float, str, etc. However, dtype
+        could be any callable that raises a ValueError on failure.
+    date_parser_kwargs : dict, optional
+        Keyword arguments to be passed into dateutil.parser.parse
+    verbose : bool
+        Print warning about multiple values found for same uid
+
+    Returns
+    ----------
+    dict
+        data_dict reformatted to one row per UID
+    """
+
+    data_lengths = [len(col) for col in data_dict.values()]
+    if len(set(data_lengths)) != 1:
+        msg = "Each column of data_dict must be of the same length"
+        raise NotImplementedError(msg)
+
+    if multi_val_policy not in {"first", "last", "min", "max"}:
+        msg = "multi_val_policy must be in 'first', 'last', 'min', or 'max'"
+        raise NotImplementedError(msg)
+
+    data = {}
+    timestamps = {}
+    for row in range(len(data_dict[y_data_col])):
+        uid = " && ".join([str(data_dict[col][row]) for col in uid_columns])
+
+        if uid not in list(data):
+            data[uid] = {}
+            timestamps[uid] = {}
+
+        vals = [data_dict[col][row] for col in x_data_cols]
+        vals = [float(v) if is_numeric(v) else v for v in vals]
+        params = " && ".join([str(v) for v in vals])
+
+        date = 0 if date_col is None else data_dict[date_col][row]
+        if date not in data[uid].keys():
+            data[uid][date] = {}
+            timestamps[uid][date] = {}
+
+        if params not in list(data[uid][date]):
+            data[uid][date][params] = []
+            timestamps[uid][date][params] = []
+
+        data[uid][date][params].append(data_dict[y_data_col][row])
+        if date_col_file_creation:
+            timestamp = data_dict[date_col_file_creation][row]
+            try:
+                timestamp = float(data_dict[date_col_file_creation][row])
+            except ValueError:
+                pass
+            timestamps[uid][date][params].append(timestamp)
+
+    x_variables = []
+    for results in data.values():
+        for date_results in results.values():
+            for param in date_results.keys():
+                if param not in {"uid", "date"}:
+                    x_variables.append(param)
+    x_variables = sorted(list(set(x_variables)))
+
+    keys = ["uid", "date"] + x_variables
+    if date_col_file_creation and date_col_file_creation not in keys:
+        keys.append(date_col_file_creation)
+    wide_data = {key: [] for key in keys}
+    partial_cols = []
+    for uid, date_data in data.items():
+        for date, param_data in date_data.items():
+            wide_data["uid"].append(uid)
+            wide_data["date"].append(date)
+
+            for x in x_variables:
+                values = param_data.get(x)
+                if values is None:
+                    if remove_partial_columns:
+                        partial_cols.append(x)
+                    values = [""]
+
+                if dtype is not None:
+                    values = [apply_dtype(v, dtype) for v in values]
+
+                value = values[0]
+                if len(values) > 1:
+                    if verbose:
+                        print(
+                            "WARNING: Multiple values found for uid: %s, "
+                            "date: %s, param: %s. Only the %s value is "
+                            "included in widen_data output."
+                            % (uid, date, x, multi_val_policy)
+                        )
+                    if multi_val_policy in {"first", "last"}:
+                        if date_col_file_creation:
+                            param_timestamps = timestamps[uid][date][x]
+                            method = {"first": "argmin", "last": "argmax"}[
+                                multi_val_policy
+                            ]
+                            value = values[
+                                getattr(np, method)(param_timestamps)
+                            ]
+                        elif multi_val_policy == "last":
+                            value = values[-1]
+                    elif multi_val_policy in {"min", "max", "mean"}:
+                        try:
+                            value = getattr(np, multi_val_policy)(values)
+                        except Exception as e:
+                            msg = (
+                                f"Multivalue policy {multi_val_policy} "
+                                f"failed for {uid}"
+                            )
+                            push_to_log(e, msg=msg)
+                            value = np.nan
+
+                wide_data[x].append(value)
+
+    if remove_partial_columns:
+        partial_cols = set(partial_cols)
+        if len(partial_cols):
+            for col in partial_cols:
+                wide_data.pop(col)
+                x_variables.pop(x_variables.index(col))
+
+    if date_col is None:
+        wide_data.pop("date")
+    elif sort_by_date:
+        kwargs = {} if date_parser_kwargs is None else date_parser_kwargs
+        dates = [get_datetime(date, kwargs) for date in wide_data["date"]]
+        for d, date_backup in enumerate(wide_data[date_col_file_creation]):
+            if isinstance(dates[d], str):
+                dates[d] = get_datetime(date_backup)
+        sorted_indices = get_sorted_indices(dates)
+        final_data = {key: [] for key in wide_data.keys()}
+        for row in range(len(wide_data[x_variables[0]])):
+            final_data["uid"].append(wide_data["uid"][sorted_indices[row]])
+            final_data["date"].append(wide_data["date"][sorted_indices[row]])
+            for x in x_variables:
+                if x != date_col_file_creation:
+                    final_data[x].append(wide_data[x][sorted_indices[row]])
+        if date_col_file_creation in final_data.keys():
+            final_data.pop(date_col_file_creation)
+        return final_data
+
+    return wide_data
+
+
+def get_datetime(date, date_parser_kwargs=None):
+    """Convert ``date`` to datetime
+
+    Parameters
+    ----------
+    date : float, str
+        Either a date time stamp (float) or a parse-able date string
+    date_parser_kwargs : dict, optional
+        Keyword arguments to be passed into dateutil.parser.parse
+
+    """
+    try:
+        return datetime.fromtimestamp(float(date))
+    except ValueError:
+        kwargs = {} if date_parser_kwargs is None else date_parser_kwargs
+        try:
+            return date_parser(date, **kwargs)
+        except Exception as e:
+            msg = f"get_datetime failed on date_parser with {date}"
+            push_to_log(e, msg=msg)
+    except Exception as e:
+        msg = f"get_datetime failed on datetime.fromtimestamp with {date}"
+        push_to_log(e, msg=msg)
+    return date

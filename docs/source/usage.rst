@@ -1,5 +1,5 @@
-=====
-Usage
-=====
+===========
+User Manual
+===========
 
 Under construction

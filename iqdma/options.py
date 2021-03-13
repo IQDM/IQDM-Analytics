@@ -15,6 +15,7 @@ from os import unlink
 import hashlib
 from iqdma.paths import OPTIONS_PATH, OPTIONS_CHECKSUM_PATH
 from iqdma._version import __version__
+from iqdma.utilities import push_to_log
 
 
 class DefaultOptions:
@@ -102,6 +103,9 @@ class DefaultOptions:
 
         self.CONTROL_LIMIT_STD_DEV = 3
 
+        self.DUPLICATE_VALUE_POLICY = "last"
+        self.DUPLICATE_VALUE_OPTIONS = ["first", "last", "max", "mean", "min"]
+
 
 class Options(DefaultOptions):
     def __init__(self):
@@ -125,11 +129,11 @@ class Options(DefaultOptions):
                     loaded_options = pickle.load(infile)
                 self.upgrade_options(loaded_options)
             except Exception as e:
-                print(
+                msg = (
                     "Options.load: Options file corrupted. Loading "
                     "default options."
                 )
-                print(e)
+                push_to_log(e, msg=msg)
                 loaded_options = {}
 
             for key, value in loaded_options.items():
@@ -154,7 +158,8 @@ class Options(DefaultOptions):
         :param value: value of option
         """
         if not hasattr(self, attr):
-            print("Options.set_option: %s did not previously exist" % attr)
+            msg = "Options.set_option: %s did not previously exist" % attr
+            push_to_log(msg)
 
         setattr(self, attr, value)
         self.is_edited = True
@@ -189,11 +194,11 @@ class Options(DefaultOptions):
             if current_checksum == stored_checksum:
                 return True
         except Exception as e:
-            print(
+            msg = (
                 "Options.is_options_file_valid: Corrupted options file "
                 "detected. Loading default options."
             )
-            print(e)
+            push_to_log(e, msg=msg)
             return False
 
     def restore_defaults(self):

@@ -21,7 +21,8 @@ PARENT_DIR = getattr(
 )  # PyInstaller compatibility
 RESOURCES_DIR = join(SCRIPT_DIR, "resources")
 ICONS_DIR = join(RESOURCES_DIR, "icons")
-WIN_APP_ICON = join(ICONS_DIR, "iqdma_frame.ico")
+WIN_FRAME_ICON = join(ICONS_DIR, "iqdma_frame.ico")
+WIN_APP_ICON = join(ICONS_DIR, "iqdma.ico")
 APPS_DIR = join(expanduser("~"), "Apps")
 APP_DIR = join(APPS_DIR, "iqdm_analytics")
 TEMP_DIR = join(APP_DIR, "temp")

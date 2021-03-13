@@ -1,4 +1,4 @@
-iqdmpdf >= 0.2.8
+iqdmpdf >= 0.2.9
 bokeh>=1.2.0,<2.0.0
 numpy
 selenium

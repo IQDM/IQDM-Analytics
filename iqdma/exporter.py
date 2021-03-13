@@ -13,7 +13,7 @@ Export current chart to HTML, SVG, or PNG
 import wx
 from functools import partial
 from iqdma.options import MATPLOTLIB_COLORS
-from iqdma.utilities import set_msw_background_color, set_frame_icon
+from iqdma.utilities import set_msw_background_color, set_icon
 
 
 class ExportFigure(wx.Frame):
@@ -46,7 +46,7 @@ class ExportFigure(wx.Frame):
         }
 
         set_msw_background_color(self)
-        set_frame_icon(self)
+        set_icon(self)
 
     def __set_input_widgets(self):
         self.input = {key: [] for key in self.options.save_fig_param.keys()}

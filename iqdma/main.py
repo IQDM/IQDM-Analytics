@@ -24,7 +24,7 @@ from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
 from iqdma.options import Options, DefaultOptions
 from iqdma.dialogs import UserSettings, About
-from iqdma.paths import ICONS, APP_DIR, initialize_directories
+from iqdma.paths import ICONS, APP_DIR, initialize_directories, WIN_APP_ICON
 from iqdma.data_table import DataTable
 from iqdma.importer import ReportImporter
 from iqdma.exporter import ExportFigure
@@ -34,9 +34,10 @@ from iqdma.utilities import (
     is_mac,
     is_linux,
     scale_bitmap,
-    set_frame_icon,
+    set_icon,
     ErrorDialog,
     main_is_frozen,
+    push_to_log,
 )
 
 
@@ -64,9 +65,9 @@ class MainFrame(wx.Frame):
         sys.excepthook = LogExcepthook
 
         # Modify the logging system from pydicom to capture important messages
-        pydicom_logger = logging.getLogger("pydicom")
-        for l in pydicom_logger.handlers:
-            pydicom_logger.removeHandler(l)
+        # pydicom_logger = logging.getLogger("pydicom")
+        # for l in pydicom_logger.handlers:
+        #     pydicom_logger.removeHandler(l)
 
         # Add file logger
         logpath = os.path.join(APP_DIR, "logs")
@@ -80,9 +81,9 @@ class MainFrame(wx.Frame):
                 "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
         )
-        self.fh.setLevel(logging.WARNING)
+        # self.fh.setLevel(logging.WARNING)
         logger.addHandler(self.fh)
-        pydicom_logger.addHandler(self.fh)
+        # pydicom_logger.addHandler(self.fh)
 
         # Add console logger if not frozen
         if not main_is_frozen():
@@ -92,7 +93,7 @@ class MainFrame(wx.Frame):
             )
             self.ch.setLevel(logging.WARNING)
             logger.addHandler(self.ch)
-            pydicom_logger.addHandler(self.ch)
+            # pydicom_logger.addHandler(self.ch)
         # Otherwise if frozen, send stdout/stderror to /dev/null since
         # logging the messages seems to cause instability due to recursion
         else:
@@ -217,6 +218,7 @@ class MainFrame(wx.Frame):
 
         help_menu = wx.Menu()
         menu_github = help_menu.Append(wx.ID_ANY, "GitHub Page")
+        menu_rtd = help_menu.Append(wx.ID_ANY, "Documentation")
         menu_report_issue = help_menu.Append(wx.ID_ANY, "Report an Issue")
         menu_about = help_menu.Append(wx.ID_ANY, "&About")
 
@@ -235,6 +237,7 @@ class MainFrame(wx.Frame):
 
         self.Bind(wx.EVT_MENU, self.on_reset_windows, menu_win_pos)
         self.Bind(wx.EVT_MENU, self.on_githubpage, menu_github)
+        self.Bind(wx.EVT_MENU, self.on_readthedocs, menu_rtd)
         self.Bind(wx.EVT_MENU, self.on_report_issue, menu_report_issue)
         self.Bind(wx.EVT_MENU, About, menu_about)
 
@@ -266,7 +269,7 @@ class MainFrame(wx.Frame):
                 "10",
                 min=2,
                 max=100,
-                style=wx.SP_ARROW_KEYS,
+                style=wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER,
             ),
             "start": wx.SpinCtrl(
                 self.panel,
@@ -282,7 +285,7 @@ class MainFrame(wx.Frame):
                 "1",
                 min=1,
                 max=100,
-                style=wx.SP_ARROW_KEYS,
+                style=wx.SP_ARROW_KEYS | wx.TE_PROCESS_ENTER,
             ),
         }
         if is_mac():
@@ -374,6 +377,11 @@ class MainFrame(wx.Frame):
         self.Bind(
             wx.EVT_SPINCTRL,
             self.update_report_data_from_hist,
+            id=self.spin_ctrl["bins"].GetId(),
+        )
+        self.Bind(
+            wx.EVT_TEXT_ENTER,
+            self.on_range_spin,
             id=self.spin_ctrl["bins"].GetId(),
         )
         # self.Bind(wx.EVT_SPIN, self.update_report_data_from_hist,
@@ -520,13 +528,17 @@ class MainFrame(wx.Frame):
 
     def on_pdf_miner(self, *evt):
         if self.pdf_miner_window is None:
-            self.pdf_miner_window = ProgressFrame(self.options)
+            self.pdf_miner_window = ProgressFrame(self, self.options)
         else:
             self.pdf_miner_window.Raise()
 
     @staticmethod
     def on_githubpage(*evt):
         webbrowser.open_new_tab("https://github.com/IQDM/IQDM-Analytics")
+
+    @staticmethod
+    def on_readthedocs(*evt):
+        webbrowser.open_new_tab("http://iqdma.readthedocs.io")
 
     @staticmethod
     def on_report_issue(*evt):
@@ -551,6 +563,14 @@ class MainFrame(wx.Frame):
     def on_refresh(self, *evt):
         self.import_csv()
 
+    def reimport(self):
+        selected = self.data_table.selected_row_index
+        self.import_csv()
+        if selected:
+            index = self.data_table.get_value(selected[0], 0)
+            self.update_chart_data(index)
+            self.list_ctrl_table.SetFocus()
+
     def enable_refresh(self, *evt):
         self.button["refresh"].Enable(
             isfile(self.text_ctrl["file"].GetValue())
@@ -560,19 +580,26 @@ class MainFrame(wx.Frame):
     # Data Processing and Visualization
     ################################################################
     def import_csv(self):
-        # if not self.is_plot_initialized:
-        #     self.plot.init_layout()
-        #     self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
-        #     self.panel.Layout()
-        #     self.is_plot_initialized = True
+        file_path = self.text_ctrl["file"].GetValue()
+        msg = f"Loading {file_path}"
+        push_to_log(msg=msg, msg_type="info")
         self.plot.clear_plot()
-        self.importer = ReportImporter(self.text_ctrl["file"].GetValue())
-        options = self.importer.charting_options
-        self.combo_box["y"].Clear()
-        self.combo_box["y"].Append(options)
-        self.combo_box["y"].SetValue(options[0])
-        self.range_update_needed = True
-        self.update_report_data()
+        try:
+            self.importer = ReportImporter(file_path)
+            options = self.importer.charting_options
+            self.combo_box["y"].Clear()
+            self.combo_box["y"].Append(options)
+            self.combo_box["y"].SetValue(options[0])
+            self.range_update_needed = True
+            msg = "IQDM Analytics\nPlease wait, updating data..."
+            with wx.BusyInfo(msg, parent=self):
+                self.update_report_data()
+        except Exception as e:
+            msg = f"Failed to load: {self.text_ctrl['file'].GetValue()}"
+            push_to_log(e, msg=msg)
+
+            caption = "CSV Import Failure!"
+            ErrorDialog(self, msg, caption)
 
     def update_report_data(self, *evt):
 
@@ -582,7 +609,9 @@ class MainFrame(wx.Frame):
             index = self.data_table.get_value(table_index, 0)
 
         self.report_data = IQDMStats(
-            self.text_ctrl["file"].GetValue(), self.charting_variable
+            self.text_ctrl["file"].GetValue(),
+            self.charting_variable,
+            self.options.DUPLICATE_VALUE_POLICY,
         )
         table, columns = self.report_data.get_index_description()
         self.data_table.set_data(table, columns)
@@ -657,35 +686,37 @@ class MainFrame(wx.Frame):
             self.plot.clear_plot()
 
     def update_chart_data(self, index):
-        ucc = self.control_chart_data[index]
-        data = ucc.chart_data
-        lcl, ucl = ucc.control_limits
-        lcl = ucc.center_line if isnan(lcl) else lcl
-        ucl = ucc.center_line if isnan(ucl) else ucl
-        if self.check_box["hipaa"].GetValue():
-            dates = data_id = ["Redacted"] * len(self.report_data.uid_data)
-        else:
-            data_id = [
-                f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
-                for v in self.report_data.uid_data
-            ]
-            dates = self.report_data.x_axis
-        start, stop = tuple(self.range)
-        kwargs = {
-            "x": data["x"],
-            "y": data["y"],
-            "data_id": data_id[start - 1 : stop],
-            "dates": dates[start - 1 : stop],
-            "center_line": ucc.center_line,
-            "ucl": ucl,
-            "lcl": lcl,
-            "y_axis_label": self.combo_box["y"].GetValue(),
-            "bins": int(self.spin_ctrl["bins"].GetValue()),
-            "tab": 1 if self.set_to_hist else 0,
-            "std": self.options.CONTROL_LIMIT_STD_DEV,
-        }
-        self.plot.update_plot(**kwargs)
-        self.set_to_hist = False
+        msg = "IQDM Analytics\nPlease wait while chart is updating..."
+        with wx.BusyInfo(msg, parent=self):
+            ucc = self.control_chart_data[index]
+            data = ucc.chart_data
+            lcl, ucl = ucc.control_limits
+            lcl = ucc.center_line if isnan(lcl) else lcl
+            ucl = ucc.center_line if isnan(ucl) else ucl
+            if self.check_box["hipaa"].GetValue():
+                dates = data_id = ["Redacted"] * len(self.report_data.uid_data)
+            else:
+                data_id = [
+                    f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
+                    for v in self.report_data.uid_data
+                ]
+                dates = self.report_data.x_axis
+            start, stop = tuple(self.range)
+            kwargs = {
+                "x": data["x"],
+                "y": data["y"],
+                "data_id": data_id[start - 1 : stop],
+                "dates": dates[start - 1 : stop],
+                "center_line": ucc.center_line,
+                "ucl": ucl,
+                "lcl": lcl,
+                "y_axis_label": self.combo_box["y"].GetValue(),
+                "bins": int(self.spin_ctrl["bins"].GetValue()),
+                "tab": 1 if self.set_to_hist else 0,
+                "std": self.options.CONTROL_LIMIT_STD_DEV,
+            }
+            self.plot.update_plot(**kwargs)
+            self.set_to_hist = False
 
     def sort_table(self, evt):
         self.data_table.sort_table(evt)
@@ -712,7 +743,7 @@ class MainApp(wx.App):
         initialize_directories()
         self.SetAppName("IQDM Analytics")
         self.frame = MainFrame(None, wx.ID_ANY, "")
-        set_frame_icon(self.frame)
+        set_icon(self.frame, icon=WIN_APP_ICON)
         self.SetTopWindow(self.frame)
         self.frame.Show()
         return True

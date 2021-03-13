@@ -10,7 +10,8 @@
 #    available at https://github.com/IQDM/IQDM-Analytics
 
 from os.path import basename
-from iqdma.utilities_dvha_stats import widen_data, csv_to_dict
+from iqdma.utilities import widen_data
+from iqdma.utilities_dvha_stats import csv_to_dict
 from IQDMPDF.parsers.sncpatient import SNCPatientReport2020, SNCPatientCustom
 from IQDMPDF.parsers.delta4 import Delta4Report
 from IQDMPDF.parsers.verisoft import VeriSoftReport
@@ -129,7 +130,9 @@ class ReportImporter:
         except ValueError:
             return float("nan")
 
-    def __call__(self, charting_column: str) -> dict:
+    def __call__(
+        self, charting_column: str, multi_val_policy: str = "first"
+    ) -> dict:
         """Call ``widen`` data with ``data_dict`` and ``charting_column``
 
         Parameters
@@ -156,6 +159,8 @@ class ReportImporter:
             "y_data_col": charting_column,
             "date_col": self.columns[self.analysis_columns["date"]],
             "dtype": dtype,
+            "date_col_file_creation": "report_file_creation",
+            "multi_val_policy": multi_val_policy,
         }
         data = widen_data(self.data_dict, **kwargs)
         x_axis = data.pop("date")
