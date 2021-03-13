@@ -65,9 +65,9 @@ class MainFrame(wx.Frame):
         sys.excepthook = LogExcepthook
 
         # Modify the logging system from pydicom to capture important messages
-        pydicom_logger = logging.getLogger("pydicom")
-        for l in pydicom_logger.handlers:
-            pydicom_logger.removeHandler(l)
+        # pydicom_logger = logging.getLogger("pydicom")
+        # for l in pydicom_logger.handlers:
+        #     pydicom_logger.removeHandler(l)
 
         # Add file logger
         logpath = os.path.join(APP_DIR, "logs")
@@ -81,9 +81,9 @@ class MainFrame(wx.Frame):
                 "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
         )
-        self.fh.setLevel(logging.WARNING)
+        # self.fh.setLevel(logging.WARNING)
         logger.addHandler(self.fh)
-        pydicom_logger.addHandler(self.fh)
+        # pydicom_logger.addHandler(self.fh)
 
         # Add console logger if not frozen
         if not main_is_frozen():
@@ -93,7 +93,7 @@ class MainFrame(wx.Frame):
             )
             self.ch.setLevel(logging.WARNING)
             logger.addHandler(self.ch)
-            pydicom_logger.addHandler(self.ch)
+            # pydicom_logger.addHandler(self.ch)
         # Otherwise if frozen, send stdout/stderror to /dev/null since
         # logging the messages seems to cause instability due to recursion
         else:
@@ -580,9 +580,12 @@ class MainFrame(wx.Frame):
     # Data Processing and Visualization
     ################################################################
     def import_csv(self):
+        file_path = self.text_ctrl["file"].GetValue()
+        msg = f"Loading {file_path}"
+        push_to_log(msg=msg, msg_type="info")
         self.plot.clear_plot()
         try:
-            self.importer = ReportImporter(self.text_ctrl["file"].GetValue())
+            self.importer = ReportImporter(file_path)
             options = self.importer.charting_options
             self.combo_box["y"].Clear()
             self.combo_box["y"].Append(options)
@@ -683,35 +686,37 @@ class MainFrame(wx.Frame):
             self.plot.clear_plot()
 
     def update_chart_data(self, index):
-        ucc = self.control_chart_data[index]
-        data = ucc.chart_data
-        lcl, ucl = ucc.control_limits
-        lcl = ucc.center_line if isnan(lcl) else lcl
-        ucl = ucc.center_line if isnan(ucl) else ucl
-        if self.check_box["hipaa"].GetValue():
-            dates = data_id = ["Redacted"] * len(self.report_data.uid_data)
-        else:
-            data_id = [
-                f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
-                for v in self.report_data.uid_data
-            ]
-            dates = self.report_data.x_axis
-        start, stop = tuple(self.range)
-        kwargs = {
-            "x": data["x"],
-            "y": data["y"],
-            "data_id": data_id[start - 1 : stop],
-            "dates": dates[start - 1 : stop],
-            "center_line": ucc.center_line,
-            "ucl": ucl,
-            "lcl": lcl,
-            "y_axis_label": self.combo_box["y"].GetValue(),
-            "bins": int(self.spin_ctrl["bins"].GetValue()),
-            "tab": 1 if self.set_to_hist else 0,
-            "std": self.options.CONTROL_LIMIT_STD_DEV,
-        }
-        self.plot.update_plot(**kwargs)
-        self.set_to_hist = False
+        msg = "IQDM Analytics\nPlease wait while chart is updating..."
+        with wx.BusyInfo(msg, parent=self):
+            ucc = self.control_chart_data[index]
+            data = ucc.chart_data
+            lcl, ucl = ucc.control_limits
+            lcl = ucc.center_line if isnan(lcl) else lcl
+            ucl = ucc.center_line if isnan(ucl) else ucl
+            if self.check_box["hipaa"].GetValue():
+                dates = data_id = ["Redacted"] * len(self.report_data.uid_data)
+            else:
+                data_id = [
+                    f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
+                    for v in self.report_data.uid_data
+                ]
+                dates = self.report_data.x_axis
+            start, stop = tuple(self.range)
+            kwargs = {
+                "x": data["x"],
+                "y": data["y"],
+                "data_id": data_id[start - 1 : stop],
+                "dates": dates[start - 1 : stop],
+                "center_line": ucc.center_line,
+                "ucl": ucl,
+                "lcl": lcl,
+                "y_axis_label": self.combo_box["y"].GetValue(),
+                "bins": int(self.spin_ctrl["bins"].GetValue()),
+                "tab": 1 if self.set_to_hist else 0,
+                "std": self.options.CONTROL_LIMIT_STD_DEV,
+            }
+            self.plot.update_plot(**kwargs)
+            self.set_to_hist = False
 
     def sort_table(self, evt):
         self.data_table.sort_table(evt)
