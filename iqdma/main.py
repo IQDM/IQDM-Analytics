@@ -154,7 +154,7 @@ class MainFrame(wx.Frame):
         threading.Thread.run = Run
 
     def __set_properties(self):
-        self.SetTitle("IQDM Analytics (v0.1.6dev2)")
+        self.SetTitle("IQDM Analytics")
         self.frame_toolbar.Realize()
 
     def __add_tool_bar(self):
