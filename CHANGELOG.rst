@@ -1,6 +1,10 @@
 Change Log for IQDM-Analytics
 =============================
 
+v0.1.7 (TBD)
+------------
+- Added Control Chart using all data
+
 v0.1.6 (2021.03.13)
 -------------------
 - Improved date parsing (IQDM-PDF bump to v0.2.9)

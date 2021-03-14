@@ -117,7 +117,7 @@ class MainFrame(wx.Frame):
         self.control_chart_data = None
         self.options = Options()
         self.set_to_hist = False
-        # self.is_plot_initialized = False
+        self.show_all_warning = True
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         self.plot = PlotControlChart(self.panel, self.options)
@@ -680,6 +680,18 @@ class MainFrame(wx.Frame):
         selected = self.data_table.selected_row_index
         if selected:
             index = self.data_table.get_value(selected[0], 0)
+            if (
+                self.show_all_warning
+                and index == self.data_table.row_count - 1
+            ):
+                msg = (
+                    "If the selected charting variable depends on "
+                    "pass-rate criteria, the calculated control "
+                    "limits are invalid."
+                )
+                caption = "WARNING: Control chart using all data"
+                ErrorDialog(self, msg, caption)
+                self.show_all_warning = False
             self.update_chart_data(index)
             self.list_ctrl_table.SetFocus()
         else:
