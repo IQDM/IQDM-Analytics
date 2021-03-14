@@ -68,7 +68,7 @@ class Plot:
         self.options = options
         self.parent = parent
         self.size_factor = (0.95, 0.95)
-        self.size_offset = (50, 400)
+        self.size_offset = (0, 100) if is_windows() else (50, 400)
         self.layout = None
         self.bokeh_layout = None
         self.html_str = ""
@@ -82,6 +82,7 @@ class Plot:
             x_axis_type=x_axis_type,
             tools=tools,
             toolbar_sticky=True,
+            active_drag="box_zoom",
         )
         self.figures = [self.figure]  # keep track of all figures
         self.figure.toolbar.logo = None

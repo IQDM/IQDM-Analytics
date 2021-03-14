@@ -120,7 +120,11 @@ class MainFrame(wx.Frame):
         self.show_all_warning = True
 
         self.panel = wx.Panel(self, wx.ID_ANY)
-        self.plot = PlotControlChart(self.panel, self.options)
+        if not is_windows():
+            self.plot = PlotControlChart(self.panel, self.options)
+        else:
+            self.plot = None
+            self.panel_plot = wx.Panel(self.panel, wx.ID_ANY)
 
         self.__add_menubar()
         self.__add_tool_bar()
@@ -227,7 +231,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_browse, menu_open)
         self.Bind(wx.EVT_MENU, self.on_save, menu_save)
         self.Bind(wx.EVT_MENU, self.on_pref, menu_pref)
-        if is_mac():
+        if not is_windows():
             menu_user_settings = settings_menu.Append(
                 wx.ID_ANY, "&Preferences\tCtrl+,"
             )
@@ -428,8 +432,11 @@ class MainFrame(wx.Frame):
         self.sizer["y"].Add(self.combo_box["y"], 0, wx.RIGHT, 5)
         self.sizer["main"].Add(self.sizer["y"], 0, wx.EXPAND, 0)
 
-        self.plot.init_layout()
-        self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
+        if is_mac():
+            self.plot.init_layout()
+            self.sizer["main"].Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
+        else:
+            self.sizer["main"].Add(self.panel_plot, 1, wx.EXPAND, 0)
 
         wrapper.Add(self.sizer["file"], 0, wx.ALL | wx.EXPAND, 5)
         wrapper.Add(self.sizer["criteria"], 0, wx.ALL | wx.EXPAND, 5)
@@ -465,7 +472,8 @@ class MainFrame(wx.Frame):
                 self.options.set_window_size(self, "main")
             self.Refresh()
             self.Layout()
-            wx.CallAfter(self.plot.redraw_plot)
+            if self.plot:
+                wx.CallAfter(self.plot.redraw_plot)
         except RuntimeError:
             pass
 
@@ -580,6 +588,15 @@ class MainFrame(wx.Frame):
     # Data Processing and Visualization
     ################################################################
     def import_csv(self):
+        if not is_mac():
+            self.plot = PlotControlChart(self.panel_plot, self.options)
+            sizer = wx.BoxSizer(wx.HORIZONTAL)
+            self.plot.init_layout()
+            sizer.Add( self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
+            self.panel_plot.SetSizer( sizer)
+            self.panel_plot.Layout()
+            self.panel.Layout()
+
         file_path = self.text_ctrl["file"].GetValue()
         msg = f"Loading {file_path}"
         push_to_log(msg=msg, msg_type="info")
@@ -695,7 +712,8 @@ class MainFrame(wx.Frame):
             self.update_chart_data(index)
             self.list_ctrl_table.SetFocus()
         else:
-            self.plot.clear_plot()
+            if self.plot:
+                self.plot.clear_plot()
 
     def update_chart_data(self, index):
         msg = "IQDM Analytics\nPlease wait while chart is updating..."
