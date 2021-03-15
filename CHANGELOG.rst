@@ -5,6 +5,7 @@ v0.1.7 (2021.03.14)
 --------------------
 - Added Control Chart using all data
 - MS Edge Support for Windows
+- IQDM-PDF bump to v0.3.0
 
 v0.1.6 (2021.03.13)
 -------------------
