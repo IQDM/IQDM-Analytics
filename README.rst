@@ -53,7 +53,6 @@ Note you *may* have to use pythonw instead of python, depending on your version.
 
 TODO
 ----
-- `MS Edge support <https://github.com/IQDM/IQDM-Analytics/issues/1>`__
 - Ability to cancel PDF-Miner thread
 - User manual (usage.rst)
 - Unit testing (non-GUI stuff)

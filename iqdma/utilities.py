@@ -355,8 +355,8 @@ def widen_data(
         msg = "Each column of data_dict must be of the same length"
         raise NotImplementedError(msg)
 
-    if multi_val_policy not in {"first", "last", "min", "max"}:
-        msg = "multi_val_policy must be in 'first', 'last', 'min', or 'max'"
+    if multi_val_policy not in {"first", "last", "min", "mean", "max"}:
+        msg = "multi_val_policy must be in 'first', 'last', 'min', 'mean', or 'max'"
         raise NotImplementedError(msg)
 
     data = {}

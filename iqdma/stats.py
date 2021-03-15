@@ -34,7 +34,8 @@ class IQDMStats:
 
         """
         imported_data = ReportImporter(report_file_path)
-        data = imported_data(charting_column, multi_val_policy)
+        self.multi_val_policy = multi_val_policy
+        data = imported_data(charting_column, self.multi_val_policy)
         self.uid_columns = imported_data.uid_col
         self.uid_data = data["uids"]
         self.criteria_columns = imported_data.criteria_col
@@ -61,6 +62,10 @@ class IQDMStats:
             table["Reports"].append(counts)
             for j, criteria in enumerate(var_name.split(" && ")):
                 table[self.criteria_columns[j]].append(criteria)
+        table["Index"].append(i + 1)
+        table["Reports"].append("All")
+        for col in self.criteria_columns:
+            table[col].append("N/A")
         return table, columns
 
     @property
@@ -134,6 +139,14 @@ class IQDMStats:
             "lcl_limit": lcl_limit,
             "range": range,
         }
+        if var_name == "All":
+            func = (
+                "max"
+                if self.multi_val_policy not in {"min", "mean", "max"}
+                else self.multi_val_policy
+            )
+            data = getattr(np, f"nan{func}")(self.data, 1)
+            return ControlChart(data, **kwargs)
         index = self.get_index_by_var_name(var_name)
         return ControlChart(self.data[:, index], **kwargs)
 
@@ -156,6 +169,8 @@ class IQDMStats:
         for i, key in enumerate(self.var_names):
             data[key] = self.univariate_control_chart(key, **kwargs)
             data[i] = data[key]
+        data["All"] = self.univariate_control_chart("All", **kwargs)
+        data[i + 1] = data["All"]
         return data
 
 
