@@ -1,4 +1,4 @@
-iqdmpdf >= 0.2.9
+iqdmpdf >= 0.3.0
 wxpython
 bokeh==1.4.0
 numpy
