@@ -221,6 +221,7 @@ class MainFrame(wx.Frame):
         menu_pref = settings_menu.Append(wx.ID_PREFERENCES)
 
         help_menu = wx.Menu()
+        menu_user_manual = help_menu.Append(wx.ID_ANY, "User Manual")
         menu_github = help_menu.Append(wx.ID_ANY, "GitHub Page")
         menu_rtd = help_menu.Append(wx.ID_ANY, "Documentation")
         menu_report_issue = help_menu.Append(wx.ID_ANY, "Report an Issue")
@@ -240,6 +241,7 @@ class MainFrame(wx.Frame):
         menu_win_pos = settings_menu.Append(wx.ID_ANY, "Reset Windows")
 
         self.Bind(wx.EVT_MENU, self.on_reset_windows, menu_win_pos)
+        self.Bind(wx.EVT_MENU, self.on_user_manual, menu_user_manual)
         self.Bind(wx.EVT_MENU, self.on_githubpage, menu_github)
         self.Bind(wx.EVT_MENU, self.on_readthedocs, menu_rtd)
         self.Bind(wx.EVT_MENU, self.on_report_issue, menu_report_issue)
@@ -541,6 +543,12 @@ class MainFrame(wx.Frame):
             self.pdf_miner_window.Raise()
 
     @staticmethod
+    def on_user_manual(*evt):
+        webbrowser.open_new_tab(
+            "https://iqdma.readthedocs.io/en/latest/usage.html"
+        )
+
+    @staticmethod
     def on_githubpage(*evt):
         webbrowser.open_new_tab("https://github.com/IQDM/IQDM-Analytics")
 
@@ -592,8 +600,8 @@ class MainFrame(wx.Frame):
             self.plot = PlotControlChart(self.panel_plot, self.options)
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             self.plot.init_layout()
-            sizer.Add( self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
-            self.panel_plot.SetSizer( sizer)
+            sizer.Add(self.plot.layout, 1, wx.EXPAND | wx.ALL, 5)
+            self.panel_plot.SetSizer(sizer)
             self.panel_plot.Layout()
             self.panel.Layout()
 
