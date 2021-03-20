@@ -43,8 +43,12 @@ IQDM-PDF currently supports the following IMRT QA vendors / reports:
 - PTW: Verisoft
 
 
-Methods - PDF Mining
---------------------
+Methods
+-------
+
+----------
+PDF Mining
+----------
 Generally speaking, the text from IMRT QA reports is extracted and
 sorted into boxes with coordinates, using `pdfminer.six <https://pdfminersix.readthedocs.io/>`__.
 Then IQDM-PDF searches for keywords to locate boxes containing data of
@@ -58,8 +62,9 @@ If you provide an anonymized report reproducing the error, it can be included
 in the automated tests.
 
 
-Methods - Data Parsing
-----------------------
+------------
+Data Parsing
+------------
 Output from IQDM-PDF will be sorted in the following order:
 
 1. Patient Name & ID ( & Plan ID/Name/SOPInstanceUID if available)
@@ -72,8 +77,9 @@ or be set to the min, mean, or max value (calculated per charting variable).
 See "Duplicate Value Policy" in Settings.
 
 
-Methods - Control Charts
-------------------------
+--------------
+Control Charts
+--------------
 A control chart is simply a plot of chronological data with a center line and
 control limits (upper and lower). The center line is the mean value of all
 points. IQDM Analytics calculates a 2-point moving-range,
