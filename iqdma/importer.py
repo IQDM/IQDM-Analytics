@@ -286,7 +286,7 @@ class ReportImporter:
 
         dtype = (
             self.delta4_dtype_func
-            if isinstance(self.parser, Delta4Report)
+            if self.parser.report_type == "Delta4.json"
             else float
         )
 
