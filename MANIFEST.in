@@ -3,3 +3,4 @@ include README.rst
 include LICENSE
 include iqdma/resources/LICENSE.txt
 include iqdma/resources/icons/*
+include iqdma/resources/csv_templates/*

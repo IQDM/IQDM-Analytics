@@ -105,6 +105,7 @@ class DefaultOptions:
 
         self.DUPLICATE_VALUE_POLICY = "last"
         self.DUPLICATE_VALUE_OPTIONS = ["first", "last", "max", "mean", "min"]
+        self.DUPLICATE_VALUE_DETECTION = True
 
 
 class Options(DefaultOptions):

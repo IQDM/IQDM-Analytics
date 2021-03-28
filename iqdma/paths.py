@@ -28,6 +28,8 @@ APP_DIR = join(APPS_DIR, "iqdm_analytics")
 TEMP_DIR = join(APP_DIR, "temp")
 OPTIONS_PATH = join(APP_DIR, ".options")
 OPTIONS_CHECKSUM_PATH = join(APP_DIR, ".options_checksum")
+CSV_TEMPLATES_DIR = join(APP_DIR, "csv_templates")
+DEFAULT_CSV_TEMPLATES_DIR = join(RESOURCES_DIR, "csv_templates")
 LICENSE_PATH = join(RESOURCES_DIR, "LICENSE.txt")
 DIRECTORIES = {
     key[:-4]: value for key, value in locals().items() if key.endswith("_DIR")

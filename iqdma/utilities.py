@@ -383,12 +383,15 @@ def widen_data(
 
         data[uid][date][params].append(data_dict[y_data_col][row])
         if date_col_file_creation:
-            timestamp = data_dict[date_col_file_creation][row]
-            try:
-                timestamp = float(data_dict[date_col_file_creation][row])
-            except ValueError:
-                pass
-            timestamps[uid][date][params].append(timestamp)
+            if date_col_file_creation in data_dict:
+                timestamp = data_dict[date_col_file_creation][row]
+                try:
+                    timestamp = float(data_dict[date_col_file_creation][row])
+                except ValueError:
+                    pass
+                timestamps[uid][date][params].append(timestamp)
+            else:
+                timestamps[uid][date][params].append(str(datetime.now()))
 
     x_variables = []
     for results in data.values():

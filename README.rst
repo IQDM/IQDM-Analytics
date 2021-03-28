@@ -54,8 +54,7 @@ Note you *may* have to use pythonw instead of python, depending on your version.
 TODO
 ----
 - Ability to cancel PDF-Miner thread
-- User manual (usage.rst)
-- Unit testing (non-GUI stuff)
+- Unit testing (non-GUI)
 - Setup continuous integration
 - Consolidate/Clean-up UserSettings Dialog code
 

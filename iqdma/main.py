@@ -23,10 +23,15 @@ from os.path import isfile
 from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
 from iqdma.options import Options, DefaultOptions
-from iqdma.dialogs import UserSettings, About
-from iqdma.paths import ICONS, APP_DIR, initialize_directories, WIN_APP_ICON
+from iqdma.dialogs import UserSettings, About, ParserSelect
+from iqdma.paths import (
+    ICONS,
+    APP_DIR,
+    initialize_directories,
+    WIN_APP_ICON,
+)
 from iqdma.data_table import DataTable
-from iqdma.importer import ReportImporter
+from iqdma.importer import ReportImporter, create_default_parsers
 from iqdma.exporter import ExportFigure
 from iqdma.pdf_miner import ProgressFrame
 from iqdma.utilities import (
@@ -118,6 +123,7 @@ class MainFrame(wx.Frame):
         self.options = Options()
         self.set_to_hist = False
         self.show_all_warning = True
+        self.parser = None
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         if not is_windows():
@@ -160,6 +166,7 @@ class MainFrame(wx.Frame):
     def __set_properties(self):
         self.SetTitle("IQDM Analytics")
         self.frame_toolbar.Realize()
+        self.combo_box["y"].SetMinSize((160, self.combo_box["y"].GetSize()[1]))
 
     def __add_tool_bar(self):
         self.toolbar_keys = [
@@ -572,9 +579,13 @@ class MainFrame(wx.Frame):
         )
         if dlg.ShowModal() == wx.ID_OK:
             self.text_ctrl["file"].SetValue(dlg.GetPath())
-            self.import_csv()
+            if ParserSelect(self).ShowModal() == wx.ID_OK:
+                self.import_csv()
 
         dlg.Destroy()
+
+    def select_parser(self):
+        pass
 
     def on_refresh(self, *evt):
         self.import_csv()
@@ -609,22 +620,22 @@ class MainFrame(wx.Frame):
         msg = f"Loading {file_path}"
         push_to_log(msg=msg, msg_type="info")
         self.plot.clear_plot()
-        try:
-            self.importer = ReportImporter(file_path)
-            options = self.importer.charting_options
-            self.combo_box["y"].Clear()
-            self.combo_box["y"].Append(options)
-            self.combo_box["y"].SetValue(options[0])
-            self.range_update_needed = True
-            msg = "IQDM Analytics\nPlease wait, updating data..."
-            with wx.BusyInfo(msg, parent=self):
-                self.update_report_data()
-        except Exception as e:
-            msg = f"Failed to load: {self.text_ctrl['file'].GetValue()}"
-            push_to_log(e, msg=msg)
-
-            caption = "CSV Import Failure!"
-            ErrorDialog(self, msg, caption)
+        # try:
+        self.importer = ReportImporter(file_path, self.parser, self.options.DUPLICATE_VALUE_DETECTION)
+        options = self.importer.charting_options
+        self.combo_box["y"].Clear()
+        self.combo_box["y"].Append(options)
+        self.combo_box["y"].SetValue(options[0])
+        self.range_update_needed = True
+        msg = "IQDM Analytics\nPlease wait, updating data..."
+        with wx.BusyInfo(msg, parent=self):
+            self.update_report_data()
+        # except Exception as e:
+        #     msg = f"Failed to load: {self.text_ctrl['file'].GetValue()}\n{e}"
+        #     push_to_log(e, msg=msg)
+        #
+        #     caption = "CSV Import Failure!"
+        #     ErrorDialog(self, msg, caption)
 
     def update_report_data(self, *evt):
 
@@ -637,6 +648,8 @@ class MainFrame(wx.Frame):
             self.text_ctrl["file"].GetValue(),
             self.charting_variable,
             self.options.DUPLICATE_VALUE_POLICY,
+            self.options.DUPLICATE_VALUE_DETECTION,
+            self.parser,
         )
         table, columns = self.report_data.get_index_description()
         self.data_table.set_data(table, columns)
@@ -779,6 +792,7 @@ class MainApp(wx.App):
             set_ie_emulation_level()
             set_ie_lockdown_level()
         initialize_directories()
+        create_default_parsers()
         self.SetAppName("IQDM Analytics")
         self.frame = MainFrame(None, wx.ID_ANY, "")
         set_icon(self.frame, icon=WIN_APP_ICON)
