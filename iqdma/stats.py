@@ -21,7 +21,9 @@ class IQDMStats:
         self,
         report_file_path: str,
         charting_column: str,
-        multi_val_policy: str = "first",
+        multi_val_policy: str,
+        duplicate_detection: bool,
+        parser: str,
     ):
         """Initialize ``IQDMStats``
 
@@ -31,9 +33,15 @@ class IQDMStats:
             File path to CSV output from IQDM-PDF
         charting_column : str
             Column of y-axis data
+        multi_val_policy : str
+            Duplicate value policy from options
+        duplicate_detection : bool
+            If true, apply a multi_value policy from options
+        parser : str
+            CSV format
 
         """
-        imported_data = ReportImporter(report_file_path)
+        imported_data = ReportImporter(report_file_path, parser, duplicate_detection)
         self.multi_val_policy = multi_val_policy
         data = imported_data(charting_column, self.multi_val_policy)
         self.uid_columns = imported_data.uid_col

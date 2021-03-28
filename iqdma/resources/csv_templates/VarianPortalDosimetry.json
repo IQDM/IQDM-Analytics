@@ -1,0 +1,25 @@
+{
+  "columns": [
+    "patient",
+    "plan",
+    "field id",
+    "image type",
+    "date",
+    "DD(%)",
+    "DTA(mm)",
+    "Threshold(%)",
+    "Gamma Pass Rate(%)"
+  ],
+  "analysis_columns": {
+    "uid": [0, 1, 2],
+    "date": 4,
+    "criteria": [5, 6, 7],
+    "y": [
+      {
+        "index": 8,
+        "ucl_limit": 100,
+        "lcl_limit": 0
+      }
+    ]
+  }
+}

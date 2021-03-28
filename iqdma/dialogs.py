@@ -9,6 +9,7 @@
 #    See the file LICENSE included with this distribution, also
 #    available at https://github.com/IQDM/IQDM-Analytics
 
+from os.path import basename
 from iqdma.paths import LICENSE_PATH
 from iqdma.options import DefaultOptions, MATPLOTLIB_COLORS
 from iqdma.utilities import (
@@ -19,6 +20,7 @@ from iqdma.utilities import (
 )
 import wx
 import wx.html2 as webview
+from iqdma.importer import import_csv_templates, create_default_parsers
 
 
 class About(wx.Dialog):
@@ -184,6 +186,9 @@ class UserSettings(wx.Frame):
             choices=DefaultOptions().DUPLICATE_VALUE_OPTIONS,
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
         )
+        self.checkbox_duplicates = wx.CheckBox(
+            self, wx.ID_ANY, "Enable Duplicate Detection"
+        )
 
         if is_windows():
             self.checkbox_edge_backend = wx.CheckBox(
@@ -258,6 +263,9 @@ class UserSettings(wx.Frame):
             "Control Chart Center Line Width"
         )
         self.combo_box_sizes_category.SetValue("Plot Axis Label Font Size")
+
+        self.checkbox_duplicates.SetValue(self.options.DUPLICATE_VALUE_DETECTION)
+        self.combo_box_duplicates.Enable(self.options.DUPLICATE_VALUE_DETECTION)
 
         if is_windows():
             self.checkbox_edge_backend.SetValue(
@@ -368,6 +376,8 @@ class UserSettings(wx.Frame):
         sizer_duplicate.Add(label_duplicate, 0, 0, 0)
         sizer_duplicate.Add((20, 20), 0, 0, 0)
         sizer_duplicate.Add(self.combo_box_duplicates, 0, 0, 0)
+        sizer_duplicate.Add((20, 20), 0, 0, 0)
+        sizer_duplicate.Add(self.checkbox_duplicates, 0, 0, 0)
         sizer_other_options.Add(sizer_duplicate, 0, wx.EXPAND | wx.BOTTOM, 10)
 
         label_n_jobs = wx.StaticText(self, wx.ID_ANY, "Multi-Threading Jobs:")
@@ -482,6 +492,12 @@ class UserSettings(wx.Frame):
             wx.EVT_COMBOBOX,
             self.update_duplicate_val,
             id=self.combo_box_duplicates.GetId(),
+        )
+
+        self.Bind(
+            wx.EVT_CHECKBOX,
+            self.on_enable_duplicate_detection,
+            id=self.checkbox_duplicates.GetId(),
         )
 
         self.Bind(
@@ -718,6 +734,11 @@ class UserSettings(wx.Frame):
             "ENABLE_EDGE_BACKEND", self.checkbox_edge_backend.GetValue()
         )
 
+    def on_enable_duplicate_detection(self, *evt):
+        state = self.checkbox_duplicates.GetValue()
+        self.options.set_option("DUPLICATE_VALUE_DETECTION", state)
+        self.combo_box_duplicates.Enable(state)
+
     def on_apply(self, *evt):
         self.apply_and_redraw_plots()
 
@@ -734,3 +755,73 @@ class UserSettings(wx.Frame):
             self.reimport_required = False
         else:
             self.parent.redraw_plots()
+
+
+class ParserSelect(wx.Dialog):
+    def __init__(self, parent):
+        wx.Dialog.__init__(self, parent, title="Import CSV Data")
+        set_icon(self)
+        self.parent = parent
+        self.place_holder = "--- Select One ---"
+
+        create_default_parsers()
+        self.parsers = import_csv_templates()
+
+        self.__add_layout_object()
+        self.__do_bind()
+        self.__do_layout()
+        self.__set_properties()
+
+    def __add_layout_object(self):
+        choices = [self.place_holder] + sorted(list(self.parsers))
+        style = wx.CB_DROPDOWN | wx.CB_READONLY
+        self.combo_box = wx.ComboBox(
+            self, wx.ID_ANY, choices=choices, style=style
+        )
+
+        self.button = {
+            "Import": wx.Button(self, wx.ID_OK, "Import"),
+            "Cancel": wx.Button(self, wx.ID_CANCEL, "Cancel"),
+        }
+
+    def __do_bind(self):
+        self.Bind(wx.EVT_COMBOBOX, self.on_select, id=self.combo_box.GetId())
+
+    def __do_layout(self):
+        sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
+        sizer_main = wx.BoxSizer(wx.VERTICAL)
+        sizer_buttons = wx.BoxSizer(wx.HORIZONTAL)
+
+        label = wx.StaticText(self, wx.ID_ANY, "CSV Format:")
+
+        sizer_main.Add(label, 0, wx.EXPAND | wx.LEFT | wx.TOP, 5)
+        sizer_main.Add(self.combo_box, 1, wx.EXPAND | wx.ALL, 5)
+
+        sizer_buttons.Add(self.button["Import"], 0, wx.EXPAND | wx.ALL, 5)
+        sizer_buttons.Add(self.button["Cancel"], 0, wx.EXPAND | wx.ALL, 5)
+        sizer_main.Add(sizer_buttons, 1, wx.EXPAND | wx.RIGHT, 10)
+
+        sizer_wrapper.Add(sizer_main, 1, wx.EXPAND | wx.ALL, 10)
+
+        self.SetSizer(sizer_wrapper)
+        self.Fit()
+        self.Center()
+
+    def __set_properties(self):
+        parser_name = self.detect_parser_name
+        if parser_name in self.parsers:
+            self.combo_box.SetValue(parser_name)
+        else:
+            self.combo_box.SetValue(self.place_holder)
+        self.on_select()
+
+    @property
+    def detect_parser_name(self):
+        # TODO: implement a more robust format detection
+        report_file_path = self.parent.text_ctrl["file"].GetValue()
+        return basename(report_file_path).split("_")[0]
+
+    def on_select(self, *evt):
+        value = self.combo_box.GetValue()
+        self.parent.parser = value if value != self.place_holder else None
+        self.button["Import"].Enable(value != self.place_holder)

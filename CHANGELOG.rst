@@ -1,6 +1,11 @@
 Change Log for IQDM-Analytics
 =============================
 
+v0.1.8 (TBD)
+------------
+- Implement CSV parsing with JSON templates, allowing for customization
+- Option to disable duplicate report detection
+
 v0.1.7 (2021.03.14)
 --------------------
 - Added Control Chart using all data
