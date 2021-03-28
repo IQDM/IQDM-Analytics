@@ -738,6 +738,7 @@ class UserSettings(wx.Frame):
         state = self.checkbox_duplicates.GetValue()
         self.options.set_option("DUPLICATE_VALUE_DETECTION", state)
         self.combo_box_duplicates.Enable(state)
+        self.reimport_required = True
 
     def on_apply(self, *evt):
         self.apply_and_redraw_plots()
