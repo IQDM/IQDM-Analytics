@@ -1,6 +1,12 @@
 Change Log for IQDM-Analytics
 =============================
 
+v0.1.9 (TBD)
+------------
+- Clean charting values of non-numerical characters on import
+- Prevent crash if only one UID columns is defined in CSV Template
+- Added CSV template for IBA MyQA
+
 v0.1.8 (2021.03.28)
 -------------------
 - Implement CSV parsing with JSON templates, allowing for customization

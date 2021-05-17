@@ -747,10 +747,13 @@ class MainFrame(wx.Frame):
             if self.check_box["hipaa"].GetValue():
                 dates = data_id = ["Redacted"] * len(self.report_data.uid_data)
             else:
-                data_id = [
-                    f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
-                    for v in self.report_data.uid_data
-                ]
+                try:
+                    data_id = [
+                        f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
+                        for v in self.report_data.uid_data
+                    ]
+                except IndexError:
+                    data_id = self.report_data.uid_data
                 dates = self.report_data.x_axis
             start, stop = tuple(self.range)
             kwargs = {
