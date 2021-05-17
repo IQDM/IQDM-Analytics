@@ -20,6 +20,7 @@ import json
 from os.path import basename, isdir, join, splitext, isfile
 from os import listdir
 from iqdma.paths import CSV_TEMPLATES_DIR, DEFAULT_CSV_TEMPLATES_DIR
+import re
 
 
 DEFAULT_PARSERS = {
@@ -156,7 +157,9 @@ def create_csv_template(parser: ParserBase):
 class ReportImporter:
     """Class to import IQDM-PDF CSV output"""
 
-    def __init__(self, report_file_path: str, parser: str, duplicate_detection: bool):
+    def __init__(
+        self, report_file_path: str, parser: str, duplicate_detection: bool
+    ):
         """Initialize ``ReportImporter``
 
         Parameters
@@ -176,6 +179,7 @@ class ReportImporter:
         self.columns = self.parser.columns
         self.analysis_columns = self.parser.analysis_columns
         self.duplicate_detection = duplicate_detection
+        self.re_non_decimal = re.compile(r"[^\d.]+")
 
     @property
     def uid_col(self) -> list:
@@ -242,27 +246,23 @@ class ReportImporter:
             for i, y in enumerate(self.analysis_columns["y"])
         }
 
-    @staticmethod
-    def delta4_dtype_func(val: str) -> float:
-        """Process Delta4 report values, use to highjack ``dtype`` in
-        ``widen_data``
+    def remove_non_numeric(self, val: str) -> float:
+        """Remove all non-numeric characters, convert to float, use to
+        highjack ``dtype`` in ``widen_data``
 
         Parameters
         ----------
         val : str
-            Value from Delta4 IQDM-PDF CSV output
+            Any string
 
         Returns
         -------
         float
             ``val`` converted into a float
         """
-        val = val.strip()
+
+        val = self.re_non_decimal.sub("", val)
         try:
-            if "%" in val:
-                return float(val.split("%")[0].strip())
-            elif " " in val:
-                return float(val.split(" ")[0].strip())
             return float(val)
         except ValueError:
             return float("nan")
@@ -284,18 +284,12 @@ class ReportImporter:
 
         """
 
-        dtype = (
-            self.delta4_dtype_func
-            if self.parser.report_type == "Delta4.json"
-            else float
-        )
-
         kwargs = {
             "uid_columns": self.uid_col,
             "x_data_cols": self.criteria_col,
             "y_data_col": charting_column,
             "date_col": self.columns[self.analysis_columns["date"]],
-            "dtype": dtype,
+            "dtype": self.remove_non_numeric,
             "date_col_file_creation": "report_file_creation",
             "multi_val_policy": multi_val_policy,
         }

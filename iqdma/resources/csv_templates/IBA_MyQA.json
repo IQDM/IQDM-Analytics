@@ -1,0 +1,36 @@
+{
+  "columns": [
+    "ProjectId",
+    "Name",
+    "PatientId",
+    "AnalysisMethod",
+    "ApprovedAt",
+    "ApprovedBy",
+    "MeasuredAt",
+    "DeltaDoseRatio",
+    "DeltaDoseAbs",
+    "DoseError",
+    "ReferenceDose",
+    "DeltaDistance",
+    "SearchDistance",
+    "Threshold",
+    "PassingValue"
+  ],
+  "analysis_columns": {
+    "uid": [2, 1, 0],
+    "date": 6,
+    "criteria": [7, 9, 11, 12, 13],
+    "y": [
+      {
+        "index": 14,
+        "ucl_limit": 100,
+        "lcl_limit": 0
+      },
+      {
+        "index": 8,
+        "ucl_limit": null,
+        "lcl_limit": 0
+      }
+    ]
+  }
+}

@@ -621,7 +621,9 @@ class MainFrame(wx.Frame):
         push_to_log(msg=msg, msg_type="info")
         self.plot.clear_plot()
         # try:
-        self.importer = ReportImporter(file_path, self.parser, self.options.DUPLICATE_VALUE_DETECTION)
+        self.importer = ReportImporter(
+            file_path, self.parser, self.options.DUPLICATE_VALUE_DETECTION
+        )
         options = self.importer.charting_options
         self.combo_box["y"].Clear()
         self.combo_box["y"].Append(options)
@@ -747,10 +749,13 @@ class MainFrame(wx.Frame):
             if self.check_box["hipaa"].GetValue():
                 dates = data_id = ["Redacted"] * len(self.report_data.uid_data)
             else:
-                data_id = [
-                    f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
-                    for v in self.report_data.uid_data
-                ]
+                try:
+                    data_id = [
+                        f"{v.split(' && ')[0]} - {v.split(' && ')[1]}"
+                        for v in self.report_data.uid_data
+                    ]
+                except IndexError:
+                    data_id = self.report_data.uid_data
                 dates = self.report_data.x_axis
             start, stop = tuple(self.range)
             kwargs = {
