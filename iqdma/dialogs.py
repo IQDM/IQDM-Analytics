@@ -264,8 +264,12 @@ class UserSettings(wx.Frame):
         )
         self.combo_box_sizes_category.SetValue("Plot Axis Label Font Size")
 
-        self.checkbox_duplicates.SetValue(self.options.DUPLICATE_VALUE_DETECTION)
-        self.combo_box_duplicates.Enable(self.options.DUPLICATE_VALUE_DETECTION)
+        self.checkbox_duplicates.SetValue(
+            self.options.DUPLICATE_VALUE_DETECTION
+        )
+        self.combo_box_duplicates.Enable(
+            self.options.DUPLICATE_VALUE_DETECTION
+        )
 
         if is_windows():
             self.checkbox_edge_backend.SetValue(

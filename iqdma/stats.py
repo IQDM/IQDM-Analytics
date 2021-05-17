@@ -41,7 +41,9 @@ class IQDMStats:
             CSV format
 
         """
-        imported_data = ReportImporter(report_file_path, parser, duplicate_detection)
+        imported_data = ReportImporter(
+            report_file_path, parser, duplicate_detection
+        )
         self.multi_val_policy = multi_val_policy
         data = imported_data(charting_column, self.multi_val_policy)
         self.uid_columns = imported_data.uid_col
@@ -116,7 +118,7 @@ class IQDMStats:
     def univariate_control_chart(
         self,
         var_name: str or int,
-        std: float or int =3,
+        std: float or int = 3,
         ucl_limit: float or int = None,
         lcl_limit: float or int = None,
         range: tuple or list or np.ndarray = None,

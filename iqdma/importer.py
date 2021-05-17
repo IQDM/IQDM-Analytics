@@ -157,7 +157,9 @@ def create_csv_template(parser: ParserBase):
 class ReportImporter:
     """Class to import IQDM-PDF CSV output"""
 
-    def __init__(self, report_file_path: str, parser: str, duplicate_detection: bool):
+    def __init__(
+        self, report_file_path: str, parser: str, duplicate_detection: bool
+    ):
         """Initialize ``ReportImporter``
 
         Parameters
@@ -177,7 +179,7 @@ class ReportImporter:
         self.columns = self.parser.columns
         self.analysis_columns = self.parser.analysis_columns
         self.duplicate_detection = duplicate_detection
-        self.re_non_decimal = re.compile(r'[^\d.]+')
+        self.re_non_decimal = re.compile(r"[^\d.]+")
 
     @property
     def uid_col(self) -> list:
@@ -259,7 +261,7 @@ class ReportImporter:
             ``val`` converted into a float
         """
 
-        val = self.re_non_decimal.sub('', val)
+        val = self.re_non_decimal.sub("", val)
         try:
             return float(val)
         except ValueError:

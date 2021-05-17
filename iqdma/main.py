@@ -621,7 +621,9 @@ class MainFrame(wx.Frame):
         push_to_log(msg=msg, msg_type="info")
         self.plot.clear_plot()
         # try:
-        self.importer = ReportImporter(file_path, self.parser, self.options.DUPLICATE_VALUE_DETECTION)
+        self.importer = ReportImporter(
+            file_path, self.parser, self.options.DUPLICATE_VALUE_DETECTION
+        )
         options = self.importer.charting_options
         self.combo_box["y"].Clear()
         self.combo_box["y"].Append(options)
