@@ -18,7 +18,7 @@ from bokeh.models import Legend, HoverTool, ColumnDataSource, Div, Spacer
 from bokeh.models.widgets import Panel, Tabs
 from bokeh.layouts import column, row
 from os.path import join, isdir, splitext
-from os import makedirs
+from os import makedirs, unlink
 from iqdma.utilities import (
     is_windows,
     save_data_to_file,
@@ -178,6 +178,10 @@ class Plot:
                 if not isdir(TEMP_DIR):
                     makedirs(TEMP_DIR)
                 web_file = join(TEMP_DIR, "%s.html" % self.type)
+                try:
+                    unlink(web_file)
+                except Exception:
+                    pass
                 with open(web_file, "wb") as f:
                     f.write(self.html_str.encode("utf-8"))
                 self.layout.LoadURL(web_file)
