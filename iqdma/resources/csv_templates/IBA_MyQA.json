@@ -1,7 +1,6 @@
 {
   "columns": [
     "ProjectId",
-    "Name",
     "PatientId",
     "AnalysisMethod",
     "ApprovedAt",
@@ -17,17 +16,17 @@
     "PassingValue"
   ],
   "analysis_columns": {
-    "uid": [2, 1, 0],
-    "date": 6,
-    "criteria": [7, 9, 11, 12, 13],
+    "uid": [2, 1],
+    "date": 5,
+    "criteria": [4, 6, 8, 10, 11, 12],
     "y": [
       {
-        "index": 14,
+        "index": 13,
         "ucl_limit": 100,
         "lcl_limit": 0
       },
       {
-        "index": 8,
+        "index": 7,
         "ucl_limit": null,
         "lcl_limit": 0
       }
