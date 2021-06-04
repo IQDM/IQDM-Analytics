@@ -158,7 +158,11 @@ class ReportImporter:
     """Class to import IQDM-PDF CSV output"""
 
     def __init__(
-        self, report_file_path: str, parser: str, duplicate_detection: bool
+        self,
+        report_file_path: str,
+        parser: str,
+        duplicate_detection: bool,
+        filters: list = None,
     ):
         """Initialize ``ReportImporter``
 
@@ -171,15 +175,36 @@ class ReportImporter:
             'SNCPatientCustom', 'Delta4', 'Verisoft', 'VarianPortalDosimetry'
         duplicate_detection : bool
             If true, apply a multi_value policy from options
+        filters : list of tuple, optional
+            Each item is a 2-tuple (var name and callable to include row if
+            true)
 
         """
         self.data_dict = csv_to_dict(report_file_path)
+        self.filters = filters
 
         self.parser = import_csv_templates()[parser]
         self.columns = self.parser.columns
         self.analysis_columns = self.parser.analysis_columns
         self.duplicate_detection = duplicate_detection
         self.re_non_decimal = re.compile(r"[^\d.]+")
+
+        if self.filters is not None:
+            self.filter_data_dict()
+
+    def filter_data_dict(self):
+        """Filter out data based on ``data_dict`` keys and provided include
+        functions
+        """
+        included = [True] * len(self.data_dict[list(self.data_dict)[0]])
+        for (col, func) in self.filters:
+            if col in self.data_dict:
+                for i, v in enumerate(self.data_dict[col]):
+                    included[i] = func(v) * included[i]
+        for key in list(self.data_dict):
+            self.data_dict[key] = [
+                v for i, v in enumerate(self.data_dict[key]) if included[i]
+            ]
 
     @property
     def uid_col(self) -> list:

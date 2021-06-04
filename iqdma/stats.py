@@ -24,6 +24,7 @@ class IQDMStats:
         multi_val_policy: str,
         duplicate_detection: bool,
         parser: str,
+        filters: list = None,
     ):
         """Initialize ``IQDMStats``
 
@@ -39,10 +40,13 @@ class IQDMStats:
             If true, apply a multi_value policy from options
         parser : str
             CSV format
+        filters : list of tuple, optional
+            Each item is a 2-tuple (var name and callable to include row if
+            true)
 
         """
         imported_data = ReportImporter(
-            report_file_path, parser, duplicate_detection
+            report_file_path, parser, duplicate_detection, filters
         )
         self.multi_val_policy = multi_val_policy
         data = imported_data(charting_column, self.multi_val_policy)
