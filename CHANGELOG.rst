@@ -1,6 +1,10 @@
 Change Log for IQDM-Analytics
 =============================
 
+v0.2.0 (TBD)
+------------
+- CSV Data filters
+
 v0.1.9 (2021.05.17)
 -------------------
 - Clean charting values of non-numerical characters on import

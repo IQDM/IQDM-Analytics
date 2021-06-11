@@ -10,6 +10,8 @@
 #    available at https://github.com/IQDM/IQDM-Analytics
 
 from os.path import basename
+from functools import partial
+import operator
 from iqdma.paths import LICENSE_PATH
 from iqdma.options import DefaultOptions, MATPLOTLIB_COLORS
 from iqdma.utilities import (
@@ -20,7 +22,7 @@ from iqdma.utilities import (
 )
 import wx
 import wx.html2 as webview
-from iqdma.importer import import_csv_templates, create_default_parsers
+from iqdma.importer import import_csv_templates, create_default_parsers, ReportImporter
 
 
 class About(wx.Dialog):
@@ -830,3 +832,193 @@ class ParserSelect(wx.Dialog):
         value = self.combo_box.GetValue()
         self.parent.parser = value if value != self.place_holder else None
         self.button["Import"].Enable(value != self.place_holder)
+
+
+class FilterFrame(wx.Dialog):
+    def __init__(self, parent, report_importer: ReportImporter):
+        wx.Dialog.__init__(self, None, title="CSV Filters")
+        set_icon(self)
+
+        self.parent = parent
+        self.report_importer = report_importer
+        self.filter_rows = []
+
+        self.__add_layout_object()
+        self.__do_bind()
+        self.__do_layout()
+        self.__set_properties()
+
+    def __add_layout_object(self):
+        self.button = {
+            'OK': wx.Button(self, wx.ID_OK),
+            'Cancel': wx.Button(self, wx.ID_CANCEL)
+        }
+
+    def __do_bind(self):
+        pass
+
+    def __do_layout(self):
+        sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
+        sizer_buttons = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer_main = wx.BoxSizer(wx.VERTICAL)
+        sizer_headers = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer_rows = []
+
+        keys = ["Column", "Function", "Value", "", ""]
+        headers = [wx.StaticText(self, wx.ID_ANY, key) for key in keys]
+        font = wx.Font(wx.FONTSIZE_SMALL, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
+        for header in headers:
+            header.SetFont(font)
+            sizer_headers.Add(header, 1, wx.EXPAND | wx.ALL, 5)
+        self.sizer_main.Add(sizer_headers, 1, wx.EXPAND, 0)
+
+        self.add_filter()
+
+        sizer_wrapper.Add(self.sizer_main, 0, wx.EXPAND | wx.ALL, 5)
+
+        sizer_buttons.Add(self.button['OK'], 0, wx.ALL, 5)
+        sizer_buttons.Add(self.button['Cancel'], 0, wx.ALL, 5)
+
+        sizer_wrapper.Add(sizer_buttons, 0, wx.ALIGN_CENTER | wx.ALL, 10)
+
+        self.SetSizer(sizer_wrapper)
+        self.Fit()
+        self.Center()
+
+    def __set_properties(self):
+        set_msw_background_color(self)
+
+    def add_filter(self):
+        self.sizer_rows.append(wx.BoxSizer(wx.HORIZONTAL))
+        self.filter_rows.append(FilterRow(self, self.report_importer, len(self.filter_rows)))
+        for obj in self.filter_rows[-1].objects:
+            self.sizer_rows[-1].Add(obj, 0, wx.EXPAND | wx.ALL, 5)
+        self.sizer_main.Add(self.sizer_rows[-1], 0, wx.EXPAND, 0)
+        self.Layout()
+        self.Fit()
+
+    def del_filter(self, index):
+        wx.CallAfter(self.filter_rows.pop, index)
+        wx.CallAfter(self.sizer_main.Remove, index)
+        wx.CallAfter(self.Layout)
+        wx.CallAfter(self.Fit)
+        for f in self.filter_rows[index:]:
+            f.index -= 1
+
+    @property
+    def filter_functions(self):
+        return [row.filter for row in self.filter_rows]
+
+
+class FilterRow:
+    def __init__(self, parent, report_importer: ReportImporter, index):
+        self.parent = parent
+        self.report_importer = report_importer
+        self.index = index
+        self.column_keys = sorted(report_importer.columns)
+
+        self.__add_layout_object()
+        self.__do_bind()
+        self.__set_properties()
+
+    def __add_layout_object(self):
+        self.columns = wx.ComboBox(
+            self.parent,
+            wx.ID_ANY,
+            style=wx.CB_DROPDOWN | wx.CB_READONLY,
+            choices=self.column_keys
+        )
+
+        self.functions = wx.ComboBox(
+            self.parent,
+            wx.ID_ANY,
+            style=wx.CB_DROPDOWN | wx.CB_READONLY,
+            choices=['=', '!=', 'contains', '>', '<']
+        )
+
+        self.values = wx.ComboBox(
+            self.parent,
+            wx.ID_ANY,
+            style=wx.CB_DROPDOWN | wx.CB_READONLY,
+        )
+
+        self.text = wx.TextCtrl(self.parent, wx.ID_ANY, "")
+
+        self.add_button = wx.Button(self.parent, wx.ID_ANY, "Add New Row")
+        self.del_button = wx.Button(self.parent, wx.ID_ANY, "Del Row")
+
+        self.objects = [
+            self.columns,
+            self.functions,
+            self.values,
+            self.text,
+            self.add_button,
+            self.del_button
+        ]
+
+    def __set_properties(self):
+        self.columns.SetValue(self.column_keys[0])
+        self.functions.SetValue('=')
+        self.on_column()
+
+        self.del_button.Enable(bool(self.index))
+
+        self.text.Hide()
+
+    def __do_bind(self):
+        self.parent.Bind(wx.EVT_COMBOBOX, self.on_column, id=self.columns.GetId())
+        self.parent.Bind(wx.EVT_COMBOBOX, self.on_functions, id=self.functions.GetId())
+        self.parent.Bind(wx.EVT_BUTTON, self.on_add, id=self.add_button.GetId())
+        self.parent.Bind(wx.EVT_BUTTON, self.on_del, id=self.del_button.GetId())
+
+    def toggle_value_text(self, show_values=None):
+        show_value = (
+            not self.values.IsShown()
+            if show_values is None else show_values
+        )
+        self.values.Show(show_value)
+        self.text.Show(not show_value)
+        self.parent.Layout()
+        self.parent.Fit()
+
+    def on_column(self, *evt):
+        choices = sorted(list(set(self.report_importer.data_dict[self.columns.GetValue()])))
+        self.set_values(choices)
+
+    def set_values(self, choices):
+        self.values.Clear()
+        self.values.SetItems(choices)
+        self.values.SetValue(str(choices[0]))
+        self.values.Fit()
+        self.parent.Layout()
+        self.parent.Fit()
+
+    def on_functions(self, *evt):
+        show_values = '=' in self.functions.GetValue()
+        self.toggle_value_text(show_values=show_values)
+
+    def on_add(self, *evt):
+        self.parent.add_filter()
+
+    def on_del(self, *evt):
+        self.parent.del_filter(self.index)
+
+    @property
+    def filter(self):
+        f = self.functions.GetValue()
+        f_map = {
+            '=': 'eq',
+            '!=': 'ne',
+            'contains': 'contains',
+            '>': 'gt',
+            '<': 'lt',
+        }
+        column = self.columns.GetValue()
+        return column, partial(getattr(operator, f_map[f]), self.param)
+
+    @property
+    def param(self):
+        func = self.functions.GetValue()
+        obj = self.values if '=' in self.functions.GetValue() else self.text
+        param = obj.GetValue()
+        return float(param) if func in ['>', '<'] else param

@@ -23,7 +23,7 @@ from os.path import isfile
 from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
 from iqdma.options import Options, DefaultOptions
-from iqdma.dialogs import UserSettings, About, ParserSelect
+from iqdma.dialogs import UserSettings, About, ParserSelect, FilterFrame
 from iqdma.paths import (
     ICONS,
     APP_DIR,
@@ -124,6 +124,7 @@ class MainFrame(wx.Frame):
         self.set_to_hist = False
         self.show_all_warning = True
         self.parser = None
+        self.filters = None
 
         self.panel = wx.Panel(self, wx.ID_ANY)
         if not is_windows():
@@ -222,6 +223,7 @@ class MainFrame(wx.Frame):
         file_menu = wx.Menu()
         menu_open = file_menu.Append(wx.ID_ANY, "&Open\tCtrl+O")
         menu_save = file_menu.Append(wx.ID_ANY, "&Save\tCtrl+S")
+        menu_filter = file_menu.Append(wx.ID_ANY, "&Filter\tCtrl+F")
         qmi = file_menu.Append(wx.ID_ANY, "&Quit\tCtrl+Q")
 
         settings_menu = wx.Menu()
@@ -238,6 +240,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.on_quit, qmi)
         self.Bind(wx.EVT_MENU, self.on_browse, menu_open)
         self.Bind(wx.EVT_MENU, self.on_save, menu_save)
+        self.Bind(wx.EVT_MENU, self.on_filter, menu_filter)
         self.Bind(wx.EVT_MENU, self.on_pref, menu_pref)
         if not is_windows():
             menu_user_settings = settings_menu.Append(
@@ -536,6 +539,15 @@ class MainFrame(wx.Frame):
         else:
             self.export_figure.Raise()
 
+    def on_filter(self, evt):
+        frame = FilterFrame(self, self.importer)
+        response = frame.ShowModal()
+        if response == wx.ID_OK:
+            self.filters = frame.filter_functions
+            self.on_refresh()
+
+        frame.Destroy()
+
     def on_pref(self, *args):
         if self.user_settings is None:
             self.user_settings = UserSettings(self)
@@ -570,6 +582,7 @@ class MainFrame(wx.Frame):
         )
 
     def on_browse(self, *evt):
+        self.filters = None
         dlg = wx.FileDialog(
             self,
             "Load IQDM-PDF CSV",
@@ -652,6 +665,7 @@ class MainFrame(wx.Frame):
             self.options.DUPLICATE_VALUE_POLICY,
             self.options.DUPLICATE_VALUE_DETECTION,
             self.parser,
+            self.filters,
         )
         table, columns = self.report_data.get_index_description()
         self.data_table.set_data(table, columns)
