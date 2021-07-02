@@ -23,7 +23,7 @@ from os.path import isfile
 from iqdma.stats import IQDMStats
 from iqdma.plot import PlotControlChart
 from iqdma.options import Options, DefaultOptions
-from iqdma.dialogs import UserSettings, About, ParserSelect, FilterFrame
+from iqdma.dialogs import UserSettings, About, ParserSelect, FilterDialog
 from iqdma.paths import (
     ICONS,
     APP_DIR,
@@ -540,7 +540,7 @@ class MainFrame(wx.Frame):
             self.export_figure.Raise()
 
     def on_filter(self, evt):
-        frame = FilterFrame(self, self.importer)
+        frame = FilterDialog(self, self.importer)
         response = frame.ShowModal()
         if response == wx.ID_OK:
             self.filters = frame.filter_functions

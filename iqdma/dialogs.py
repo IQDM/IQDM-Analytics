@@ -834,7 +834,7 @@ class ParserSelect(wx.Dialog):
         self.button["Import"].Enable(value != self.place_holder)
 
 
-class FilterFrame(wx.Dialog):
+class FilterDialog(wx.Dialog):
     def __init__(self, parent, report_importer: ReportImporter):
         wx.Dialog.__init__(self, None, title="CSV Filters")
         set_icon(self)
@@ -861,16 +861,18 @@ class FilterFrame(wx.Dialog):
         sizer_wrapper = wx.BoxSizer(wx.VERTICAL)
         sizer_buttons = wx.BoxSizer(wx.HORIZONTAL)
         self.sizer_main = wx.BoxSizer(wx.VERTICAL)
-        sizer_headers = wx.BoxSizer(wx.HORIZONTAL)
-        self.sizer_rows = []
+        sizer_filters = wx.BoxSizer(wx.HORIZONTAL)
+        self.sizer_cols = []
 
-        keys = ["Column", "Function", "Value", "", ""]
-        headers = [wx.StaticText(self, wx.ID_ANY, key) for key in keys]
         font = wx.Font(wx.FONTSIZE_SMALL, wx.DECORATIVE, wx.NORMAL, wx.BOLD)
-        for header in headers:
+        for key in ["Column", "Function", "Value", "", ""]:
+            self.sizer_cols.append(wx.BoxSizer(wx.VERTICAL))
+            header = wx.StaticText(self, wx.ID_ANY, key)
             header.SetFont(font)
-            sizer_headers.Add(header, 1, wx.EXPAND | wx.ALL, 5)
-        self.sizer_main.Add(sizer_headers, 1, wx.EXPAND, 0)
+            self.sizer_cols[-1].Add(header, 1, wx.EXPAND, 5)
+            sizer_filters.Add(self.sizer_cols[-1], 1, wx.EXPAND, 0)
+
+        self.sizer_main.Add(sizer_filters, 1, wx.EXPAND, 0)
 
         self.add_filter()
 
@@ -889,17 +891,19 @@ class FilterFrame(wx.Dialog):
         set_msw_background_color(self)
 
     def add_filter(self):
-        self.sizer_rows.append(wx.BoxSizer(wx.HORIZONTAL))
-        self.filter_rows.append(FilterRow(self, self.report_importer, len(self.filter_rows)))
-        for obj in self.filter_rows[-1].objects:
-            self.sizer_rows[-1].Add(obj, 0, wx.EXPAND | wx.ALL, 5)
-        self.sizer_main.Add(self.sizer_rows[-1], 0, wx.EXPAND, 0)
+        self.filter_rows.append(
+            FilterRow(self, self.report_importer, len(self.filter_rows))
+        )
+        for i, obj in enumerate(self.filter_rows[-1].objects):
+            index = i if i < 3 else i - 1
+            self.sizer_cols[index].Add(obj, 0, wx.EXPAND | wx.ALL, 5)
         self.Layout()
         self.Fit()
 
     def del_filter(self, index):
         wx.CallAfter(self.filter_rows.pop, index)
-        wx.CallAfter(self.sizer_main.Remove, index)
+        for col in self.sizer_cols:
+            wx.CallAfter(col.Remove, index)
         wx.CallAfter(self.Layout)
         wx.CallAfter(self.Fit)
         for f in self.filter_rows[index:]:
