@@ -966,7 +966,7 @@ class FilterRow:
 
     def __set_properties(self):
         self.columns.SetValue(self.column_keys[0])
-        self.functions.SetValue("=")
+        self.functions.SetValue("is")
         self.on_column()
 
         self.del_button.Enable(bool(self.index))
@@ -1011,7 +1011,7 @@ class FilterRow:
         self.parent.Fit()
 
     def on_functions(self, *evt):
-        show_values = "=" in self.functions.GetValue()
+        show_values = self.functions.GetValue() in {'is', 'contains'}
         self.toggle_value_text(show_values=show_values)
 
     def on_add(self, *evt):

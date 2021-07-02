@@ -190,7 +190,6 @@ class ReportImporter:
         self.re_non_decimal = re.compile(r"[^\d.]+")
 
         if self.filters is not None:
-            print(filters)
             self.filter_data_dict()
 
     def filter_data_dict(self):
