@@ -10,7 +10,6 @@
 #    available at https://github.com/IQDM/IQDM-Analytics
 
 from os.path import basename
-from functools import partial
 import operator
 from iqdma.paths import LICENSE_PATH
 from iqdma.options import DefaultOptions, MATPLOTLIB_COLORS
@@ -22,7 +21,12 @@ from iqdma.utilities import (
 )
 import wx
 import wx.html2 as webview
-from iqdma.importer import import_csv_templates, create_default_parsers, ReportImporter
+from iqdma.importer import (
+    import_csv_templates,
+    create_default_parsers,
+    ReportImporter,
+)
+import re
 
 
 class About(wx.Dialog):
@@ -850,8 +854,8 @@ class FilterDialog(wx.Dialog):
 
     def __add_layout_object(self):
         self.button = {
-            'OK': wx.Button(self, wx.ID_OK),
-            'Cancel': wx.Button(self, wx.ID_CANCEL)
+            "OK": wx.Button(self, wx.ID_OK),
+            "Cancel": wx.Button(self, wx.ID_CANCEL),
         }
 
     def __do_bind(self):
@@ -878,8 +882,8 @@ class FilterDialog(wx.Dialog):
 
         sizer_wrapper.Add(self.sizer_main, 0, wx.EXPAND | wx.ALL, 5)
 
-        sizer_buttons.Add(self.button['OK'], 0, wx.ALL, 5)
-        sizer_buttons.Add(self.button['Cancel'], 0, wx.ALL, 5)
+        sizer_buttons.Add(self.button["OK"], 0, wx.ALL, 5)
+        sizer_buttons.Add(self.button["Cancel"], 0, wx.ALL, 5)
 
         sizer_wrapper.Add(sizer_buttons, 0, wx.ALIGN_CENTER | wx.ALL, 10)
 
@@ -930,14 +934,14 @@ class FilterRow:
             self.parent,
             wx.ID_ANY,
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
-            choices=self.column_keys
+            choices=self.column_keys,
         )
 
         self.functions = wx.ComboBox(
             self.parent,
             wx.ID_ANY,
             style=wx.CB_DROPDOWN | wx.CB_READONLY,
-            choices=['=', '!=', 'contains', '>', '<']
+            choices=["is", "contains", "=", "!=", ">", ">=", "<", "<="],
         )
 
         self.values = wx.ComboBox(
@@ -957,12 +961,12 @@ class FilterRow:
             self.values,
             self.text,
             self.add_button,
-            self.del_button
+            self.del_button,
         ]
 
     def __set_properties(self):
         self.columns.SetValue(self.column_keys[0])
-        self.functions.SetValue('=')
+        self.functions.SetValue("=")
         self.on_column()
 
         self.del_button.Enable(bool(self.index))
@@ -970,15 +974,22 @@ class FilterRow:
         self.text.Hide()
 
     def __do_bind(self):
-        self.parent.Bind(wx.EVT_COMBOBOX, self.on_column, id=self.columns.GetId())
-        self.parent.Bind(wx.EVT_COMBOBOX, self.on_functions, id=self.functions.GetId())
-        self.parent.Bind(wx.EVT_BUTTON, self.on_add, id=self.add_button.GetId())
-        self.parent.Bind(wx.EVT_BUTTON, self.on_del, id=self.del_button.GetId())
+        self.parent.Bind(
+            wx.EVT_COMBOBOX, self.on_column, id=self.columns.GetId()
+        )
+        self.parent.Bind(
+            wx.EVT_COMBOBOX, self.on_functions, id=self.functions.GetId()
+        )
+        self.parent.Bind(
+            wx.EVT_BUTTON, self.on_add, id=self.add_button.GetId()
+        )
+        self.parent.Bind(
+            wx.EVT_BUTTON, self.on_del, id=self.del_button.GetId()
+        )
 
     def toggle_value_text(self, show_values=None):
         show_value = (
-            not self.values.IsShown()
-            if show_values is None else show_values
+            not self.values.IsShown() if show_values is None else show_values
         )
         self.values.Show(show_value)
         self.text.Show(not show_value)
@@ -986,7 +997,9 @@ class FilterRow:
         self.parent.Fit()
 
     def on_column(self, *evt):
-        choices = sorted(list(set(self.report_importer.data_dict[self.columns.GetValue()])))
+        choices = sorted(
+            list(set(self.report_importer.data_dict[self.columns.GetValue()]))
+        )
         self.set_values(choices)
 
     def set_values(self, choices):
@@ -998,7 +1011,7 @@ class FilterRow:
         self.parent.Fit()
 
     def on_functions(self, *evt):
-        show_values = '=' in self.functions.GetValue()
+        show_values = "=" in self.functions.GetValue()
         self.toggle_value_text(show_values=show_values)
 
     def on_add(self, *evt):
@@ -1009,20 +1022,33 @@ class FilterRow:
 
     @property
     def filter(self):
+        return self.columns.GetValue(), self.filter_func
+
+    def filter_func(self, value):
         f = self.functions.GetValue()
         f_map = {
-            '=': 'eq',
-            '!=': 'ne',
-            'contains': 'contains',
-            '>': 'gt',
-            '<': 'lt',
+            "is": "eq",
+            "contains": "contains",
+            "=": "eq",
+            "!=": "ne",
+            ">": "gt",
+            ">=": "ge",
+            "<": "lt",
+            "<=": "le",
         }
-        column = self.columns.GetValue()
-        return column, partial(getattr(operator, f_map[f]), self.param)
+
+        if f in {"=", "!=", ">", "<"}:
+            non_decimal = re.compile(r"[^\d.]+")
+            value = non_decimal.sub("", value.split(" ")[0])
+            try:
+                value = float(value)
+            except ValueError:
+                return True
+        return getattr(operator, f_map[f])(value, self.param)
 
     @property
     def param(self):
         func = self.functions.GetValue()
-        obj = self.values if '=' in self.functions.GetValue() else self.text
+        obj = self.values if "=" in self.functions.GetValue() else self.text
         param = obj.GetValue()
-        return float(param) if func in ['>', '<'] else param
+        return float(param) if func in [">", "<"] else param
