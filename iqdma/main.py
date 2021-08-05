@@ -620,7 +620,7 @@ class MainFrame(wx.Frame):
     # Data Processing and Visualization
     ################################################################
     def import_csv(self):
-        if not is_mac():
+        if not is_mac() and self.plot is None:
             self.plot = PlotControlChart(self.panel_plot, self.options)
             sizer = wx.BoxSizer(wx.HORIZONTAL)
             self.plot.init_layout()
